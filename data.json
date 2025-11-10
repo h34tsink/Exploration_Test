@@ -1,0 +1,262 @@
+{
+  "scientificFields": {
+    "biology": {
+      "name": "Biology",
+      "color": "#2ecc71",
+      "subfields": ["Genetic Diversity", "Adaptability", "Biomass", "Reproductive Rate"]
+    },
+    "chemistry": {
+      "name": "Chemistry",
+      "color": "#3498db",
+      "subfields": ["Elemental Composition", "Reactivity", "Stability", "Compound Formation"]
+    },
+    "physics": {
+      "name": "Physics",
+      "color": "#9b59b6",
+      "subfields": ["Gravitational Influence", "Electromagnetic Properties", "Density", "Thermal Conductivity"]
+    },
+    "geology": {
+      "name": "Geology",
+      "color": "#e67e22",
+      "subfields": ["Mineral Composition", "Structural Integrity", "Magnetic Properties", "Fossil Records"]
+    },
+    "ecology": {
+      "name": "Ecology",
+      "color": "#27ae60",
+      "subfields": ["Ecosystem Impact", "Symbiotic Relationships", "Resource Cycles", "Sustainability"]
+    },
+    "astronomy": {
+      "name": "Astronomy",
+      "color": "#8e44ad",
+      "subfields": ["Spectral Data", "Orbital Characteristics", "Radiation Levels", "Cosmic Composition"]
+    },
+    "engineering": {
+      "name": "Engineering",
+      "color": "#c0392b",
+      "subfields": ["Structural Applications", "Material Strength", "Technological Integration", "Durability"]
+    },
+    "medicine": {
+      "name": "Medicine",
+      "color": "#16a085",
+      "subfields": ["Healing Properties", "Toxicity", "Pharmaceutical Potential", "Biological Compatibility"]
+    }
+  },
+  "techTree": {
+    "biotech": {
+      "name": "Biotechnology",
+      "techs": {
+        "basicGenetic": {
+          "name": "Basic Genetic Engineering",
+          "requirements": { "biology": 200 }
+        },
+        "advancedGenetic": {
+          "name": "Advanced Genetic Engineering",
+          "requirements": { "biology": 300 },
+          "subfieldReqs": { "Genetic Diversity": 80, "Reproductive Rate": 70 }
+        },
+        "bioPharma": {
+          "name": "Bio-Pharmaceuticals",
+          "requirements": { "medicine": 250, "chemistry": 150 }
+        }
+      }
+    },
+    "energy": {
+      "name": "Energy & Physics",
+      "techs": {
+        "basicEnergy": {
+          "name": "Basic Energy Systems",
+          "requirements": { "physics": 150 }
+        },
+        "fusion": {
+          "name": "Fusion Energy",
+          "requirements": { "physics": 300 },
+          "subfieldReqs": { "Thermal Conductivity": 100, "Electromagnetic Properties": 80 }
+        },
+        "quantum": {
+          "name": "Quantum Computing",
+          "requirements": { "physics": 250, "engineering": 200 }
+        }
+      }
+    },
+    "environmental": {
+      "name": "Environmental Engineering",
+      "techs": {
+        "sustainable": {
+          "name": "Sustainable Agriculture",
+          "requirements": { "ecology": 200, "biology": 100 }
+        },
+        "terraforming": {
+          "name": "Terraforming",
+          "requirements": { "ecology": 300 },
+          "subfieldReqs": { "Ecosystem Impact": 100, "Sustainability": 80 }
+        },
+        "climate": {
+          "name": "Climate Control Systems",
+          "requirements": { "ecology": 250, "engineering": 200 }
+        }
+      }
+    },
+    "spacecraft": {
+      "name": "Spacecraft Technology",
+      "techs": {
+        "basicPropulsion": {
+          "name": "Ion Propulsion Systems",
+          "requirements": { "physics": 180, "engineering": 150 }
+        },
+        "ftlDrive": {
+          "name": "FTL Drive",
+          "requirements": { "physics": 400, "astronomy": 250 },
+          "subfieldReqs": { "Quantum Mechanics": 90, "Space-Time Distortion": 85 }
+        },
+        "warpCore": {
+          "name": "Warp Core Stabilization",
+          "requirements": { "physics": 350, "engineering": 300 },
+          "subfieldReqs": { "Energy Efficiency": 100 }
+        },
+        "jumpGate": {
+          "name": "Jump Gate Navigation",
+          "requirements": { "astronomy": 300, "physics": 250 },
+          "subfieldReqs": { "Gravitational Analysis": 80, "Spatial Mapping": 75 }
+        }
+      }
+    },
+    "powerArmor": {
+      "name": "Power Armor",
+      "techs": {
+        "basicExosuit": {
+          "name": "Basic Exo-Suit",
+          "requirements": { "engineering": 150, "physics": 100 }
+        },
+        "combatArmor": {
+          "name": "Advanced Combat Armor",
+          "requirements": { "engineering": 250, "physics": 200 },
+          "subfieldReqs": { "Material Strength": 80, "Energy Efficiency": 70 }
+        },
+        "shieldedArmor": {
+          "name": "Energy Shielded Armor",
+          "requirements": { "physics": 300, "engineering": 250 },
+          "subfieldReqs": { "Electromagnetic Properties": 90, "Energy Efficiency": 85 }
+        },
+        "nanoArmor": {
+          "name": "Nano-Adaptive Armor",
+          "requirements": { "engineering": 350, "chemistry": 250, "biology": 200 },
+          "subfieldReqs": { "Molecular Dynamics": 95, "Adaptive Systems": 80 }
+        }
+      }
+    },
+    "personal": {
+      "name": "Personal Equipment",
+      "techs": {
+        "hazardSuit": {
+          "name": "Environmental Hazard Suit",
+          "requirements": { "engineering": 120, "chemistry": 100 }
+        },
+        "scannerTech": {
+          "name": "Advanced Scanner Module",
+          "requirements": { "engineering": 200, "astronomy": 150, "geology": 150 }
+        },
+        "gravBoots": {
+          "name": "Gravitational Boots",
+          "requirements": { "physics": 220, "engineering": 180 },
+          "subfieldReqs": { "Gravitational Analysis": 75 }
+        },
+        "personalShield": {
+          "name": "Personal Shield Generator",
+          "requirements": { "physics": 280, "engineering": 220 },
+          "subfieldReqs": { "Energy Efficiency": 80, "Electromagnetic Properties": 75 }
+        }
+      }
+    },
+    "medical": {
+      "name": "Medical & Consumables",
+      "techs": {
+        "basicMedkit": {
+          "name": "Standard Medkit",
+          "requirements": { "medicine": 150, "chemistry": 100 }
+        },
+        "stimPack": {
+          "name": "Combat Stimulant Pack",
+          "requirements": { "medicine": 200, "chemistry": 180, "biology": 150 },
+          "subfieldReqs": { "Pharmacology": 70, "Metabolic Processes": 65 }
+        },
+        "nanoHealing": {
+          "name": "Nano-Medical Injector",
+          "requirements": { "medicine": 300, "chemistry": 250, "engineering": 200 },
+          "subfieldReqs": { "Cellular Regeneration": 85, "Molecular Dynamics": 80 }
+        },
+        "statBooster": {
+          "name": "Performance Enhancement Serum",
+          "requirements": { "medicine": 250, "biology": 220 },
+          "subfieldReqs": { "Metabolic Processes": 80, "Genetic Diversity": 70 }
+        }
+      }
+    },
+    "weapons": {
+      "name": "Weapons Technology",
+      "techs": {
+        "laserWeapons": {
+          "name": "Laser Weaponry",
+          "requirements": { "physics": 200, "engineering": 150 }
+        },
+        "plasmaRifle": {
+          "name": "Plasma Rifle",
+          "requirements": { "physics": 300, "chemistry": 200 },
+          "subfieldReqs": { "Thermal Conductivity": 85, "Reactivity": 75 }
+        },
+        "railgun": {
+          "name": "Electromagnetic Railgun",
+          "requirements": { "physics": 350, "engineering": 280 },
+          "subfieldReqs": { "Electromagnetic Properties": 90, "Material Strength": 80 }
+        },
+        "quantumDisruptor": {
+          "name": "Quantum Disruptor",
+          "requirements": { "physics": 400, "astronomy": 250 },
+          "subfieldReqs": { "Quantum Mechanics": 95, "Energy Efficiency": 85 }
+        }
+      }
+    },
+    "nanotechnology": {
+      "name": "Nanotechnology",
+      "techs": {
+        "nanoFabricators": {
+          "name": "Nano-Fabricators",
+          "requirements": { "engineering": 250, "chemistry": 200 }
+        },
+        "smartMatter": {
+          "name": "Programmable Smart Matter",
+          "requirements": { "engineering": 320, "chemistry": 280, "physics": 200 },
+          "subfieldReqs": { "Molecular Dynamics": 90, "Material Strength": 75 }
+        },
+        "nanoSwarm": {
+          "name": "Autonomous Nano-Swarm",
+          "requirements": { "engineering": 380, "biology": 250, "chemistry": 250 },
+          "subfieldReqs": { "Adaptive Systems": 85, "Molecular Dynamics": 85 }
+        }
+      }
+    },
+    "xenobiology": {
+      "name": "Xenobiology",
+      "techs": {
+        "alienAnalysis": {
+          "name": "Xenobiological Analysis",
+          "requirements": { "biology": 250, "medicine": 180 }
+        },
+        "symbioticTech": {
+          "name": "Symbiotic Integration",
+          "requirements": { "biology": 320, "chemistry": 250 },
+          "subfieldReqs": { "Genetic Diversity": 85, "Metabolic Processes": 80 }
+        },
+        "bioWeapons": {
+          "name": "Xenobiological Weaponization",
+          "requirements": { "biology": 350, "medicine": 280, "chemistry": 250 },
+          "subfieldReqs": { "Pathogen Analysis": 90, "Genetic Diversity": 85 }
+        },
+        "consciousness": {
+          "name": "Alien Consciousness Interface",
+          "requirements": { "biology": 400, "medicine": 350, "astronomy": 200 },
+          "subfieldReqs": { "Neural Systems": 95, "Cognitive Function": 90 }
+        }
+      }
+    }
+  }
+}

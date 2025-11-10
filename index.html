@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exploration System Tester</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="loading" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #0a0e27; display: flex; align-items: center; justify-content: center; z-index: 9999;">
+        <div style="text-align: center; color: #4a90e2;">
+            <h2>Loading Game Data...</h2>
+            <p id="loadingStatus">Initializing...</p>
+        </div>
+    </div>
+    <div class="container">
+        <header>
+            <h1>🌌 Exploration System Tester</h1>
+            <p class="subtitle">Interactive testing environment for exploration mechanics</p>
+        </header>
+
+        <nav class="tabs">
+            <button class="tab-btn active" data-tab="verbs">Exploration Verbs</button>
+            <button class="tab-btn" data-tab="materials">Material Generator</button>
+            <button class="tab-btn" data-tab="rewards">Reward System</button>
+            <button class="tab-btn" data-tab="ecology">Ecology Simulator</button>
+            <button class="tab-btn" data-tab="mystery">Mystery Budget</button>
+            <button class="tab-btn" data-tab="loop">Loop Timer</button>
+            <button class="tab-btn" data-tab="metrics">Metrics Dashboard</button>
+        </nav>
+
+        <!-- Exploration Verbs Tab -->
+        <div id="verbs" class="tab-content active">
+            <h2>Exploration Verbs Testing</h2>
+            
+            <div style="margin-bottom: 20px; padding: 15px; background: rgba(52, 152, 219, 0.1); border-left: 3px solid #3498db; border-radius: 5px;">
+                <h3 style="color: #3498db; margin-top: 0;">📚 Developer Notes</h3>
+                <p style="line-height: 1.6; margin: 10px 0;">
+                    <strong>Purpose:</strong> Test different interaction mechanics for discovering objects in the game world. 
+                    Each verb represents a distinct gameplay loop with unique inputs and skill expressions.
+                </p>
+                <ul style="line-height: 1.8; margin: 10px 0;">
+                    <li><strong>Trace:</strong> Tests spatial reasoning & accuracy - rewards precision</li>
+                    <li><strong>Sample:</strong> Tests thoroughness & resource management - collect multiple points</li>
+                    <li><strong>Decode:</strong> Tests pattern recognition - cognitive engagement through puzzles</li>
+                    <li><strong>Shadow:</strong> Tests observation & timing - track moving targets</li>
+                    <li><strong>Excavate:</strong> Tests persistence & commitment - depth-based rewards</li>
+                </ul>
+                <p style="line-height: 1.6; margin: 10px 0; color: #95a5a6; font-size: 0.9em;">
+                    <strong>Design Goal:</strong> Match discovery type to appropriate interaction. Active scanning = Trace. 
+                    Biological study = Sample/Shadow. Archaeological = Excavate. Ancient tech = Decode.
+                </p>
+            </div>
+            
+            <div class="verb-grid">
+                <div class="verb-card" data-verb="trace">
+                    <h3>🎯 Trace</h3>
+                    <p class="domain">Domain: Applied</p>
+                    <p>Triangulate signals, radiation, or sound</p>
+                    <div class="verb-simulation">
+                        <canvas id="traceCanvas" width="300" height="200"></canvas>
+                        <button class="action-btn">Start Trace</button>
+                        <div class="result-box"></div>
+                    </div>
+                </div>
+
+                <div class="verb-card" data-verb="sample">
+                    <h3>🧪 Sample</h3>
+                    <p class="domain">Domain: Life/Physical</p>
+                    <p>Collect biological or chemical material</p>
+                    <div class="verb-simulation">
+                        <div class="sample-targets"></div>
+                        <button class="action-btn">Take Sample</button>
+                        <div class="result-box"></div>
+                    </div>
+                </div>
+
+                <div class="verb-card" data-verb="decode">
+                    <h3>🔐 Decode</h3>
+                    <p class="domain">Domain: Applied</p>
+                    <p>Solve pattern-based puzzles</p>
+                    <div class="verb-simulation">
+                        <div class="pattern-display"></div>
+                        <input type="text" placeholder="Enter pattern solution" class="pattern-input">
+                        <button class="action-btn">Decode</button>
+                        <div class="result-box"></div>
+                    </div>
+                </div>
+
+                <div class="verb-card" data-verb="shadow">
+                    <h3>👁️ Shadow</h3>
+                    <p class="domain">Domain: Life</p>
+                    <p>Track migratory species or weather</p>
+                    <div class="verb-simulation">
+                        <div class="tracking-display"></div>
+                        <button class="action-btn">Follow Trail</button>
+                        <div class="result-box"></div>
+                    </div>
+                </div>
+
+                <div class="verb-card" data-verb="excavate">
+                    <h3>⛏️ Excavate</h3>
+                    <p class="domain">Domain: Physical</p>
+                    <p>Dig, drill, or cut into ruins</p>
+                    <div class="verb-simulation">
+                        <div class="excavation-progress">
+                            <div class="progress-bar"></div>
+                        </div>
+                        <button class="action-btn">Start Excavation</button>
+                        <div class="result-box"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Material Generator Tab -->
+        <div id="materials" class="tab-content">
+            <h2>Procedural Object Generator</h2>
+            
+            <div style="margin-bottom: 20px; padding: 15px; background: rgba(46, 204, 113, 0.1); border-left: 3px solid #2ecc71; border-radius: 5px;">
+                <h3 style="color: #2ecc71; margin-top: 0;">📚 Developer Notes</h3>
+                <p style="line-height: 1.6; margin: 10px 0;">
+                    <strong>Purpose:</strong> Test procedural generation system for discoverable objects. Each object has 32 substats 
+                    (8 fields × 4 subfields) distributed from a stat pool based on rarity.
+                </p>
+                <ul style="line-height: 1.8; margin: 10px 0;">
+                    <li><strong>Stat Pools:</strong> Common=300, Uncommon=450, Rare=600, Epic=800, Legendary=1000 points</li>
+                    <li><strong>Field Distribution:</strong> Points allocated across 8 scientific fields with type-specific weighting</li>
+                    <li><strong>Evolution:</strong> Living organisms (plant/animal/microbe) can mutate, boosting random subfield 10-25%</li>
+                    <li><strong>Tech Requirements:</strong> Cumulative field totals + individual subfield thresholds determine unlocks</li>
+                </ul>
+                <p style="line-height: 1.6; margin: 10px 0; color: #95a5a6; font-size: 0.9em;">
+                    <strong>Design Goal:</strong> Create meaningful diversity in discovered objects. Each object feels unique through procedural 
+                    naming, stat variation, and scientific properties. Tech tree creates strategic value for collecting diverse specimens.
+                </p>
+            </div>
+            
+            <div class="material-controls">
+                <div class="control-group">
+                    <label>
+                        Object Type:
+                        <select id="materialType">
+                            <option value="plant">Plant / Flora</option>
+                            <option value="animal">Animal / Fauna</option>
+                            <option value="mineral">Mineral</option>
+                            <option value="crystal">Crystal</option>
+                            <option value="gas">Gas / Atmosphere</option>
+                            <option value="artifact">Artifact</option>
+                            <option value="microorganism">Microorganism</option>
+                            <option value="compound">Chemical Compound</option>
+                        </select>
+                    </label>
+                    
+                    <label>
+                        Discovery Location:
+                        <select id="biomeOrigin">
+                            <option value="volcanic">Volcanic Planet</option>
+                            <option value="arctic">Arctic Planet</option>
+                            <option value="forest">Forest Planet</option>
+                            <option value="desert">Desert Planet</option>
+                            <option value="ocean">Ocean Planet</option>
+                            <option value="cave">Cave System</option>
+                            <option value="asteroid">Asteroid</option>
+                            <option value="space">Deep Space</option>
+                            <option value="radioactive">Radioactive Zone</option>
+                        </select>
+                    </label>
+                    
+                    <label>
+                        Rarity Override:
+                        <select id="rarityOverride">
+                            <option value="random">Random (Natural)</option>
+                            <option value="common">Common</option>
+                            <option value="uncommon">Uncommon</option>
+                            <option value="rare">Rare</option>
+                            <option value="epic">Epic</option>
+                            <option value="legendary">Legendary</option>
+                        </select>
+                    </label>
+                </div>
+                
+                <button id="generateMaterial" class="action-btn">Generate Object</button>
+                <button id="generateBatch" class="action-btn secondary">Generate Batch (10)</button>
+            </div>
+
+            <div class="material-display-grid">
+                <div class="material-preview">
+                    <h3>Generated Object</h3>
+                    <div id="currentMaterial" class="material-card-large"></div>
+                    
+                    <div class="material-actions">
+                        <button id="evolveMaterial" class="action-btn">Evolve/Mutate Object</button>
+                        <button id="analyzeMaterial" class="action-btn">Full Analysis</button>
+                    </div>
+                    
+                    <div id="materialAnalysis" class="analysis-results"></div>
+                </div>
+
+                <div class="material-inventory">
+                    <h3>Object Inventory</h3>
+                    <div class="inventory-filters">
+                        <button class="filter-btn active" data-filter="all">All</button>
+                        <button class="filter-btn" data-filter="plant">Plants</button>
+                        <button class="filter-btn" data-filter="animal">Animals</button>
+                        <button class="filter-btn" data-filter="mineral">Minerals</button>
+                        <button class="filter-btn" data-filter="rare">Rare Only</button>
+                    </div>
+                    <div id="materialInventory" class="inventory-grid"></div>
+                    <div class="inventory-stats">
+                        <strong>Total Objects:</strong> <span id="inventoryCount">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Scientific Fields Stats Display -->
+            <div class="scientific-fields-panel">
+                <h3>Scientific Field Breakdown</h3>
+                <div id="scientificStats" class="scientific-stats-grid"></div>
+            </div>
+
+            <!-- Tech Requirements Panel -->
+            <div class="tech-requirements-panel">
+                <h3>Tech Tree Requirements</h3>
+                <div class="tech-tree-tabs">
+                    <button class="tech-tab-btn active" data-branch="biotech">Biotechnology</button>
+                    <button class="tech-tab-btn" data-branch="energy">Energy & Physics</button>
+                    <button class="tech-tab-btn" data-branch="environmental">Environmental</button>
+                    <button class="tech-tab-btn" data-branch="spacecraft">Spacecraft</button>
+                    <button class="tech-tab-btn" data-branch="powerArmor">Power Armor</button>
+                    <button class="tech-tab-btn" data-branch="personal">Personal Gear</button>
+                    <button class="tech-tab-btn" data-branch="medical">Medical</button>
+                    <button class="tech-tab-btn" data-branch="weapons">Weapons</button>
+                    <button class="tech-tab-btn" data-branch="nanotechnology">Nanotech</button>
+                    <button class="tech-tab-btn" data-branch="xenobiology">Xenobiology</button>
+                </div>
+                <div id="techRequirements" class="tech-requirements-display"></div>
+                <div id="objectAllocation" class="object-allocation-panel">
+                    <h4>Allocate Objects to Research</h4>
+                    <div id="allocationSlots"></div>
+                    <button id="calculateResearch" class="action-btn">Calculate Tech Progress</button>
+                    <div id="researchResults"></div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Reward System Tab -->
+        <div id="rewards" class="tab-content">
+            <h2>Reward Structure Testing</h2>
+            
+            <div style="margin-bottom: 20px; padding: 15px; background: rgba(155, 89, 182, 0.1); border-left: 3px solid #9b59b6; border-radius: 5px;">
+                <h3 style="color: #9b59b6; margin-top: 0;">📚 Developer Notes</h3>
+                <p style="line-height: 1.6; margin: 10px 0;">
+                    <strong>Purpose:</strong> Test reward scaling based on rarity and discovery frequency. Compare REP gains across 
+                    different scenarios to balance incentives for exploration vs. farming.
+                </p>
+                <ul style="line-height: 1.8; margin: 10px 0;">
+                    <li><strong>First Discoverer:</strong> 2x REP multiplier for being first to find a species/object globally</li>
+                    <li><strong>Diminishing Returns:</strong> Each subsequent discovery reduces value by 5% (min 10%)</li>
+                    <li><strong>Rarity Scaling:</strong> Common=20 base, Uncommon=50, Rare=100, Unique=250 base REP</li>
+                </ul>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+                <!-- Simulator Panel -->
+                <div style="background: var(--card-bg); padding: 20px; border-radius: 10px; border: 2px solid var(--border);">
+                    <h3>Discovery Simulator</h3>
+                    <div class="reward-controls">
+                        <label>
+                            Discovery Rarity:
+                            <select id="raritySelect">
+                                <option value="common">Common (60% drop rate)</option>
+                                <option value="uncommon">Uncommon (25% drop rate)</option>
+                                <option value="rare">Rare (10% drop rate)</option>
+                                <option value="unique">Unique (5% drop rate)</option>
+                            </select>
+                        </label>
+                        <label>
+                            Global Discovery Count:
+                            <input type="number" id="discoveryCount" min="0" max="100" value="0" style="width: 100%;">
+                            <small style="color: #95a5a6;">How many times has this been found before?</small>
+                        </label>
+                        <button id="generateReward" class="action-btn" style="width: 100%; margin-top: 10px;">Calculate REP Value</button>
+                    </div>
+                    <div id="rewardDisplay" class="reward-display"></div>
+                </div>
+                
+                <!-- Comparison Panel -->
+                <div style="background: var(--card-bg); padding: 20px; border-radius: 10px; border: 2px solid var(--border);">
+                    <h3>REP Value Comparison</h3>
+                    <div id="comparisonDisplay" style="margin-top: 15px;">
+                        <p style="color: #95a5a6; font-style: italic;">Generate a discovery to see comparison data</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- REP Calculation Breakdown -->
+            <div style="background: var(--card-bg); padding: 20px; border-radius: 10px; border: 2px solid var(--border); margin-bottom: 20px;">
+                <h3>Discovery Log & Session Stats</h3>
+                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 20px;">
+                    <div style="text-align: center; padding: 15px; background: rgba(0,0,0,0.3); border-radius: 5px;">
+                        <div style="font-size: 2em; color: #95a5a6;" id="totalCommon">0</div>
+                        <div style="font-size: 0.9em; color: #95a5a6;">Common Found</div>
+                    </div>
+                    <div style="text-align: center; padding: 15px; background: rgba(0,0,0,0.3); border-radius: 5px;">
+                        <div style="font-size: 2em; color: #3498db;" id="totalUncommon">0</div>
+                        <div style="font-size: 0.9em; color: #3498db;">Uncommon Found</div>
+                    </div>
+                    <div style="text-align: center; padding: 15px; background: rgba(0,0,0,0.3); border-radius: 5px;">
+                        <div style="font-size: 2em; color: #9b59b6;" id="totalRare">0</div>
+                        <div style="font-size: 0.9em; color: #9b59b6;">Rare Found</div>
+                    </div>
+                    <div style="text-align: center; padding: 15px; background: rgba(0,0,0,0.3); border-radius: 5px;">
+                        <div style="font-size: 2em; color: #f39c12;" id="totalUnique">0</div>
+                        <div style="font-size: 0.9em; color: #f39c12;">Unique Found</div>
+                    </div>
+                </div>
+                
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <div>
+                        <strong>Total REP Earned:</strong> <span id="totalREP" style="color: #2ecc71; font-size: 1.3em;">0</span>
+                    </div>
+                    <div>
+                        <strong>Average REP/Discovery:</strong> <span id="avgREP" style="color: #3498db;">0</span>
+                    </div>
+                    <button id="clearLog" class="action-btn secondary">Clear Session</button>
+                </div>
+                
+                <div id="discoveryLog" style="max-height: 200px; overflow-y: auto; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 5px;">
+                    <p style="color: #95a5a6; font-style: italic;">No discoveries yet. Start generating rewards above.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Ecology Simulator Tab -->
+        <div id="ecology" class="tab-content">
+            <h2>Ecological Simulation</h2>
+            <div class="ecology-grid">
+                <div class="biome-view">
+                    <h3>Biome State</h3>
+                    <canvas id="ecologyCanvas" width="400" height="300"></canvas>
+                    <div class="ecology-controls">
+                        <button id="advanceTime" class="action-btn">Advance Time (1hr)</button>
+                        <button id="harvestResource" class="action-btn">Harvest Resource</button>
+                        <button id="resetEcology" class="action-btn secondary">Reset</button>
+                    </div>
+                </div>
+                <div class="ecology-stats">
+                    <h3>Environmental Data</h3>
+                    <div class="stat-item">
+                        <label>Temperature:</label>
+                        <div class="stat-bar">
+                            <div class="stat-fill" id="tempBar"></div>
+                        </div>
+                        <span id="tempValue">20°C</span>
+                    </div>
+                    <div class="stat-item">
+                        <label>Radiation:</label>
+                        <div class="stat-bar">
+                            <div class="stat-fill" id="radBar"></div>
+                        </div>
+                        <span id="radValue">Low</span>
+                    </div>
+                    <div class="stat-item">
+                        <label>Flora Density:</label>
+                        <div class="stat-bar">
+                            <div class="stat-fill" id="floraBar"></div>
+                        </div>
+                        <span id="floraValue">75%</span>
+                    </div>
+                    <div class="stat-item">
+                        <label>Fauna Activity:</label>
+                        <div class="stat-bar">
+                            <div class="stat-fill" id="faunaBar"></div>
+                        </div>
+                        <span id="faunaValue">Medium</span>
+                    </div>
+                    <div class="stat-item">
+                        <label>World Health:</label>
+                        <div class="stat-bar health">
+                            <div class="stat-fill" id="healthBar"></div>
+                        </div>
+                        <span id="healthValue">100%</span>
+                    </div>
+                    <div class="ecology-log">
+                        <h4>Event Log</h4>
+                        <div id="ecologyLog"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mystery Budget Tab -->
+        <div id="mystery" class="tab-content">
+            <h2>Mystery Budget Manager</h2>
+            <div class="mystery-controls">
+                <label>
+                    Biome Type:
+                    <select id="biomeType">
+                        <option value="volcanic">Volcanic</option>
+                        <option value="arctic">Arctic</option>
+                        <option value="forest">Forest</option>
+                        <option value="desert">Desert</option>
+                        <option value="ocean">Ocean</option>
+                    </select>
+                </label>
+                <button id="generateMystery" class="action-btn">Generate Mystery Budget</button>
+            </div>
+            <div class="mystery-display">
+                <div class="mystery-map">
+                    <canvas id="mysteryCanvas" width="600" height="400"></canvas>
+                </div>
+                <div class="mystery-breakdown">
+                    <h3>Discovery Breakdown</h3>
+                    <div id="mysteryStats"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loop Timer Tab -->
+        <div id="loop" class="tab-content">
+            <h2>Exploration Loop Timer</h2>
+            <div class="loop-container">
+                <div class="loop-type-selector">
+                    <button class="loop-btn active" data-loop="micro">Micro Loop (5-8 min)</button>
+                    <button class="loop-btn" data-loop="macro">Macro Loop (1-2 hrs)</button>
+                </div>
+                <div class="loop-tracker" id="microLoop">
+                    <div class="loop-phase active" data-phase="detect">
+                        <h3>1. Detect</h3>
+                        <p>Visual/audio cue or instrument signal</p>
+                        <button class="phase-btn">Start Phase</button>
+                        <span class="phase-time">0:00</span>
+                    </div>
+                    <div class="loop-phase" data-phase="approach">
+                        <h3>2. Approach</h3>
+                        <p>Navigate hazard or puzzle</p>
+                        <button class="phase-btn">Start Phase</button>
+                        <span class="phase-time">0:00</span>
+                    </div>
+                    <div class="loop-phase" data-phase="interact">
+                        <h3>3. Interact</h3>
+                        <p>Use exploration verb</p>
+                        <button class="phase-btn">Start Phase</button>
+                        <span class="phase-time">0:00</span>
+                    </div>
+                    <div class="loop-phase" data-phase="reward">
+                        <h3>4. Reward</h3>
+                        <p>Receive loot</p>
+                        <button class="phase-btn">Start Phase</button>
+                        <span class="phase-time">0:00</span>
+                    </div>
+                    <div class="loop-phase" data-phase="record">
+                        <h3>5. Record</h3>
+                        <p>Update journal & REP</p>
+                        <button class="phase-btn">Complete Loop</button>
+                        <span class="phase-time">0:00</span>
+                    </div>
+                </div>
+                <div class="loop-summary">
+                    <h3>Loop Summary</h3>
+                    <div id="loopResults"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Metrics Dashboard Tab -->
+        <div id="metrics" class="tab-content">
+            <h2>Metrics Dashboard</h2>
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <h3>Curiosity Conversion</h3>
+                    <div class="metric-value" id="curiosityMetric">0%</div>
+                    <div class="metric-target">Target: +25%</div>
+                    <div class="metric-bar">
+                        <div class="metric-fill" id="curiosityFill"></div>
+                    </div>
+                    <button class="metric-btn" data-metric="curiosity">Simulate Event</button>
+                </div>
+
+                <div class="metric-card">
+                    <h3>Loop Completion Time</h3>
+                    <div class="metric-value" id="loopTimeMetric">0:00</div>
+                    <div class="metric-target">Target: 5-8 min</div>
+                    <div class="metric-bar">
+                        <div class="metric-fill" id="loopTimeFill"></div>
+                    </div>
+                </div>
+
+                <div class="metric-card">
+                    <h3>Souvenir Density</h3>
+                    <div class="metric-value" id="souvenirMetric">0/15min</div>
+                    <div class="metric-target">Target: 1/12-15min</div>
+                    <div class="metric-bar">
+                        <div class="metric-fill" id="souvenirFill"></div>
+                    </div>
+                    <button class="metric-btn" data-metric="souvenir">Add Discovery</button>
+                </div>
+
+                <div class="metric-card">
+                    <h3>Predictive Success</h3>
+                    <div class="metric-value" id="predictiveMetric">0%</div>
+                    <div class="metric-target">Target: 60%</div>
+                    <div class="metric-bar">
+                        <div class="metric-fill" id="predictiveFill"></div>
+                    </div>
+                    <button class="metric-btn" data-metric="predictive">Log Prediction</button>
+                </div>
+
+                <div class="metric-card">
+                    <h3>Solo/Co-op Parity</h3>
+                    <div class="metric-value" id="parityMetric">0%</div>
+                    <div class="metric-target">Target: ±12%</div>
+                    <div class="metric-bar">
+                        <div class="metric-fill" id="parityFill"></div>
+                    </div>
+                </div>
+
+                <div class="metric-card full-width">
+                    <h3>Session History</h3>
+                    <canvas id="metricsChart" width="800" height="200"></canvas>
+                </div>
+            </div>
+            <div class="export-controls">
+                <button id="exportMetrics" class="action-btn">Export Data (JSON)</button>
+                <button id="resetMetrics" class="action-btn secondary">Reset All Metrics</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
