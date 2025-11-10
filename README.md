@@ -1,91 +1,281 @@
 # Exploration System Tester
 
-An interactive web application for testing and iterating on exploration game mechanics based on the Exploration Overhaul Design Document.
+An interactive web application for testing and iterating on exploration game mechanics. Features procedural object generation, dynamic ecosystems, reward scaling systems, and comprehensive testing tools for game balance.
+
+## Quick Start
+
+### Running Locally
+
+**Option 1: Using the start script (Recommended)**
+
+```bash
+# Windows
+start.bat
+
+# Linux/Mac
+./start.sh
+```
+
+**Option 2: Direct Python command**
+
+```bash
+python start_server.py
+```
+
+The server will display access URLs:
+
+- **Local access**: `http://localhost:8000`
+- **Network access**: `http://[your-ip]:8000`
+
+### Running Over LAN
+
+1. Start the server using one of the methods above
+2. Note your local IP address displayed in the terminal
+3. On other devices connected to the same network, open a browser and navigate to:
+
+   ```
+   http://[your-ip]:8000
+   ```
+
+   For example: `http://192.168.1.100:8000`
+
+**Firewall Note**: You may need to allow Python through your firewall for LAN access.
 
 ## Features
 
 ### 🎯 Exploration Verbs Testing
-Test all five exploration verbs with interactive simulations:
-- **Trace**: Signal triangulation mechanics
-- **Sample**: Resource collection from targets
-- **Decode**: Pattern-based puzzle solving
-- **Shadow**: Creature tracking and behavior observation
-- **Excavate**: Progressive excavation mechanics
+
+Test five distinct interaction mechanics for discovering objects in the game world:
+
+- **Trace**: Triangulate signals, radiation, or sound through spatial reasoning challenges
+- **Sample**: Collect biological or chemical samples with resource management
+- **Decode**: Solve pattern-based puzzles requiring cognitive engagement
+- **Shadow**: Track migratory species or weather patterns with observation skills
+- **Excavate**: Dig, drill, or cut into ruins with persistence-based mechanics
+
+Each verb represents a unique gameplay loop with different inputs and skill expressions, designed to match specific discovery types.
+
+### 🧬 Procedural Object Generator
+
+Generate unique discoverable objects with deep scientific properties:
+
+- **32 Substats per Object**: 8 scientific fields × 4 subfields each
+  - Biology, Chemistry, Physics, Geology, Ecology, Astronomy, Engineering, Medicine
+- **Rarity-Based Stat Pools**:
+  - Common (300 pts), Uncommon (450 pts), Rare (600 pts), Epic (800 pts), Legendary (1000 pts)
+- **8 Object Types**: Plants, Animals, Minerals, Crystals, Gases, Artifacts, Microorganisms, Compounds
+- **9 Biome Origins**: Volcanic, Arctic, Forest, Desert, Ocean, Cave, Asteroid, Space, Radioactive
+- **Evolution System**: Living organisms can mutate, boosting random subfields by 10-25%
+- **Tech Tree Integration**: 10 research branches with dual requirement system
+  - Biotechnology, Energy & Physics, Environmental, Spacecraft, Power Armor, Personal Equipment, Medical, Weapons, Nanotechnology, Xenobiology
 
 ### 🎁 Reward System
-- Generate rewards with different rarity levels
-- Test first discoverer bonuses
-- Adaptive scaling based on global discovery counts
-- Visual statistics and charts
+
+Test and balance reward scaling with comprehensive analysis tools:
+
+- **Rarity-Based REP**: Common (20), Uncommon (50), Rare (100), Unique (250) base values
+- **First Discoverer Bonus**: 2× REP multiplier for first global discovery
+- **Diminishing Returns**: 5% reduction per subsequent discovery (10% minimum)
+- **Discovery Simulator**: Calculate REP values for different scenarios
+- **Comparison Panel**: View REP values at 0, 5, 10, and 20 discovery counts
+- **Session Tracking**: Real-time counters for each rarity tier
+- **Discovery Log**: Timestamped history with color-coded entries
 
 ### 🌍 Ecology Simulator
-- Dynamic biome states with time progression
-- Resource harvesting impact simulation
-- World health tracking
-- Reactive ecology with diminishing returns
-- Environmental parameters (temperature, radiation, flora, fauna)
+
+Dynamic ecosystem simulation with consequences for over-harvesting:
+
+- **Time-Based Recovery**: Flora and fauna regenerate based on world health
+- **Environmental Impact**: Harvesting reduces density and triggers warnings
+- **Day/Night Cycle**: Temperature and fauna activity vary with time
+- **Health System**: World health tracks overall ecosystem status
+- **Smart Warnings**:
+  - 🔴 Critical (< 30% health) - Immediate stop required
+  - ⚠️ Stressed (< 60% health) - Reduce harvesting
+  - ⚡ Frequent farming - Suggests relocation
+  - ✅ Stable - Sustainable harvesting OK
+- **Recovery Metrics**: Shows estimated hours needed for full recovery
+- **Event Log**: Tracks all actions and ecosystem changes
 
 ### 🗺️ Mystery Budget Manager
-- Procedural discovery distribution
+
+Procedural discovery distribution system:
+
 - Landmark, micro-point, and occluded secret placement
-- Biome-specific generation
-- Visual map representation
+- Biome-specific generation patterns
+- Visual map representation with canvas rendering
+- Discovery breakdown statistics
 
 ### ⏱️ Loop Timer
-- Micro loop phase tracking (5-8 minutes target)
-- Phase-by-phase breakdown
-- Optimal pacing validation
-- Automatic metrics collection
+
+Exploration loop phase tracking:
+
+- **Micro Loop** (5-8 minutes target): Detect → Approach → Interact → Reward → Record
+- **Macro Loop** (1-2 hours): Extended session tracking
+- Phase-by-phase timing with real-time updates
+- Optimal pacing validation against design targets
+- Automatic metrics collection for dashboard
 
 ### 📊 Metrics Dashboard
-- Real-time KPI tracking:
-  - Curiosity Conversion Rate (Target: +25%)
-  - Loop Completion Time (Target: 5-8 min)
-  - Souvenir Density (Target: 1/12-15min)
-  - Predictive Success (Target: 60%)
-  - Solo/Co-op Parity (Target: ±12%)
-- Session history visualization
-- Export data to JSON
-- Reset functionality
 
-## Usage
+Real-time KPI tracking and session analysis:
 
-1. Open `index.html` in a modern web browser
-2. Navigate between tabs to test different systems
-3. Use the interactive controls to simulate gameplay scenarios
-4. Monitor metrics in the dashboard
-5. Export data for analysis
+- **Curiosity Conversion Rate** (Target: +25%)
+- **Loop Completion Time** (Target: 5-8 min)
+- **Souvenir Density** (Target: 1/12-15min)
+- **Predictive Success** (Target: 60%)
+- **Solo/Co-op Parity** (Target: ±12%)
+- Session history visualization with charts
+- Export data to JSON for external analysis
+- Reset functionality for clean testing sessions
 
-## Testing Workflow
+## Architecture
 
-1. **Test Exploration Verbs**: Click through each verb to understand interaction patterns
-2. **Generate Rewards**: Experiment with different rarity levels and discovery counts
-3. **Simulate Ecology**: Advance time and harvest resources to observe ecosystem changes
-4. **Create Mystery Budgets**: Generate maps for different biomes
-5. **Time Loop Phases**: Practice optimal loop pacing
-6. **Monitor Metrics**: Track performance against design targets
+### File Structure
+
+```
+Exploration_Test/
+├── index.html          # Main application UI (490 lines)
+├── app.js             # Core logic and state management (1996 lines)
+├── styles.css         # Dark space theme styling (1100+ lines)
+├── data.json          # Scientific fields & tech tree data (2447 lines)
+├── start_server.py    # LAN-accessible HTTP server
+├── start.bat          # Windows startup script
+├── start.sh           # Linux/Mac startup script
+└── docs/
+    └── exploration_overhaul_design.md
+```
+
+### Technology Stack
+
+- **Frontend**: Vanilla JavaScript, HTML5 Canvas, CSS3
+- **Data**: JSON-based configuration (async loading)
+- **Server**: Python HTTP server (cross-platform)
+- **No Dependencies**: Runs entirely in browser, no frameworks required
+
+## Usage Guide
+
+### Testing Workflow
+
+1. **Exploration Verbs**:
+   - Click each verb card to test interaction mechanics
+   - Observe how different verbs require different player skills
+   - Use for prototyping discovery types
+
+2. **Material Generator**:
+   - Generate objects with different types, biomes, and rarities
+   - Analyze scientific field distribution
+   - Test evolution/mutation mechanics
+   - Allocate objects to tech tree research
+   - Calculate tech unlock progress
+
+3. **Reward System**:
+   - Test REP scaling at different discovery counts
+   - Compare first discoverer vs. repeat discovery values
+   - Use Discovery Log to track session statistics
+   - Validate diminishing returns balance
+
+4. **Ecology Simulator**:
+   - Harvest resources and observe ecosystem response
+   - Use "Skip Day" to test recovery mechanics
+   - Monitor world health and harvest warnings
+   - Test sustainability of farming vs. exploration
+
+5. **Mystery Budget**:
+   - Generate maps for different biomes
+   - Analyze discovery density and distribution
+   - Validate biome-specific generation patterns
+
+6. **Loop Timer**:
+   - Time yourself through each phase
+   - Validate against 5-8 minute target
+   - Use for pacing design iteration
+
+7. **Metrics Dashboard**:
+   - Monitor all KPIs in real-time
+   - Export session data for analysis
+   - Reset between testing sessions
+
+### Developer Notes
+
+Each major tab includes developer notes explaining:
+
+- **Purpose**: What the system tests
+- **Mechanics**: How it works
+- **Design Goals**: What it's trying to achieve
+
+These provide context for understanding design decisions and testing focus.
 
 ## Data Export
 
-Use the "Export Data (JSON)" button in the Metrics Dashboard to save session data including:
-- All metrics history
+The Metrics Dashboard "Export Data (JSON)" button saves:
+
+- Complete metrics history
 - Reward generation results
 - Ecology state snapshots
 - Loop timing data
+- Session timestamps
 
-## Quick Iteration Tips
+Use exported data for:
 
-- Use the Metrics Dashboard to quickly validate if changes meet KPI targets
-- Test different reward rarities to balance discovery excitement
-- Simulate overfarming in Ecology to test sustainability mechanics
-- Compare Mystery Budget distributions across biomes
-- Time yourself through Loop phases to validate pacing
+- External analysis in spreadsheets
+- Tracking changes across iterations
+- Sharing results with team members
+- Creating balance documentation
+
+## Testing Tips
+
+### Quick Iteration
+
+- Developer notes provide instant context
+- Generate batches of 10 objects for faster testing
+- Use comparison panels to see scaling effects
+- Session stats reveal long-term balance issues
+
+### Balance Validation
+
+- Ecology warnings show when farming becomes problematic
+- Reward comparison highlights diminishing returns
+- Tech tree shows if certain fields are over/under-represented
+- Metrics dashboard validates against design KPIs
+
+### Common Workflows
+
+- **New Object Type**: Generate 10, check field distribution, test tech tree impact
+- **Reward Balance**: Compare REP at counts 0, 5, 10, 20 across all rarities
+- **Ecosystem Design**: Harvest until critical, note recovery time
+- **Loop Pacing**: Run multiple loops, export timing data
 
 ## Browser Compatibility
 
-Works best in modern browsers (Chrome, Firefox, Edge, Safari) with HTML5 Canvas support.
+Tested and working on:
+
+- Chrome 90+
+- Firefox 88+
+- Edge 90+
+- Safari 14+
+
+Requires HTML5 Canvas support and ES6 JavaScript features.
+
+## Known Limitations
+
+- Server must run for JSON data loading (file:// protocol doesn't support fetch API)
+- Session data stored in memory (cleared on page refresh)
+- Canvas rendering may vary slightly across browsers
+- Large inventories (100+ objects) may impact performance
+
+## Future Enhancements
+
+Potential additions:
+
+- Persistent storage (LocalStorage/IndexedDB)
+- Object comparison tools
+- Tech tree visualization
+- Biome preset templates
+- A/B testing framework
 
 ---
 
 **Version:** 1.0  
+**Last Updated:** November 2025  
 **Based on:** Exploration Overhaul Design Document v1.0
