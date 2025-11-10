@@ -33,20 +33,20 @@
         <div id="verbs" class="tab-content active">
             <h2>Exploration Verbs Testing</h2>
             
-            <div style="margin-bottom: 20px; padding: 15px; background: rgba(52, 152, 219, 0.1); border-left: 3px solid #3498db; border-radius: 5px;">
-                <h3 style="color: #3498db; margin-top: 0;">📚 Developer Notes</h3>
-                <p style="line-height: 1.6; margin: 10px 0;">
+            <div class="developer-notes">
+                <h3>📚 Developer Notes</h3>
+                <p>
                     <strong>Purpose:</strong> Test different interaction mechanics for discovering objects in the game world. 
                     Each verb represents a distinct gameplay loop with unique inputs and skill expressions.
                 </p>
-                <ul style="line-height: 1.8; margin: 10px 0;">
+                <ul>
                     <li><strong>Trace:</strong> Tests spatial reasoning & accuracy - rewards precision</li>
                     <li><strong>Sample:</strong> Tests thoroughness & resource management - collect multiple points</li>
                     <li><strong>Decode:</strong> Tests pattern recognition - cognitive engagement through puzzles</li>
                     <li><strong>Shadow:</strong> Tests observation & timing - track moving targets</li>
                     <li><strong>Excavate:</strong> Tests persistence & commitment - depth-based rewards</li>
                 </ul>
-                <p style="line-height: 1.6; margin: 10px 0; color: #95a5a6; font-size: 0.9em;">
+                <p class="design-goal">
                     <strong>Design Goal:</strong> Match discovery type to appropriate interaction. Active scanning = Trace. 
                     Biological study = Sample/Shadow. Archaeological = Excavate. Ancient tech = Decode.
                 </p>
@@ -117,19 +117,19 @@
         <div id="materials" class="tab-content">
             <h2>Procedural Object Generator</h2>
             
-            <div style="margin-bottom: 20px; padding: 15px; background: rgba(46, 204, 113, 0.1); border-left: 3px solid #2ecc71; border-radius: 5px;">
-                <h3 style="color: #2ecc71; margin-top: 0;">📚 Developer Notes</h3>
-                <p style="line-height: 1.6; margin: 10px 0;">
+            <div class="developer-notes">
+                <h3>📚 Developer Notes</h3>
+                <p>
                     <strong>Purpose:</strong> Test procedural generation system for discoverable objects. Each object has 32 substats 
                     (8 fields × 4 subfields) distributed from a stat pool based on rarity.
                 </p>
-                <ul style="line-height: 1.8; margin: 10px 0;">
+                <ul>
                     <li><strong>Stat Pools:</strong> Common=300, Uncommon=450, Rare=600, Epic=800, Legendary=1000 points</li>
                     <li><strong>Field Distribution:</strong> Points allocated across 8 scientific fields with type-specific weighting</li>
                     <li><strong>Evolution:</strong> Living organisms (plant/animal/microbe) can mutate, boosting random subfield 10-25%</li>
                     <li><strong>Tech Requirements:</strong> Cumulative field totals + individual subfield thresholds determine unlocks</li>
                 </ul>
-                <p style="line-height: 1.6; margin: 10px 0; color: #95a5a6; font-size: 0.9em;">
+                <p class="design-goal">
                     <strong>Design Goal:</strong> Create meaningful diversity in discovered objects. Each object feels unique through procedural 
                     naming, stat variation, and scientific properties. Tech tree creates strategic value for collecting diverse specimens.
                 </p>
@@ -248,13 +248,13 @@
         <div id="rewards" class="tab-content">
             <h2>Reward Structure Testing</h2>
             
-            <div style="margin-bottom: 20px; padding: 15px; background: rgba(155, 89, 182, 0.1); border-left: 3px solid #9b59b6; border-radius: 5px;">
-                <h3 style="color: #9b59b6; margin-top: 0;">📚 Developer Notes</h3>
-                <p style="line-height: 1.6; margin: 10px 0;">
+            <div class="developer-notes">
+                <h3>📚 Developer Notes</h3>
+                <p>
                     <strong>Purpose:</strong> Test reward scaling based on rarity and discovery frequency. Compare REP gains across 
                     different scenarios to balance incentives for exploration vs. farming.
                 </p>
-                <ul style="line-height: 1.8; margin: 10px 0;">
+                <ul>
                     <li><strong>First Discoverer:</strong> 2x REP multiplier for being first to find a species/object globally</li>
                     <li><strong>Diminishing Returns:</strong> Each subsequent discovery reduces value by 5% (min 10%)</li>
                     <li><strong>Rarity Scaling:</strong> Common=20 base, Uncommon=50, Rare=100, Unique=250 base REP</li>
@@ -335,14 +335,34 @@
         <!-- Ecology Simulator Tab -->
         <div id="ecology" class="tab-content">
             <h2>Ecological Simulation</h2>
+            
+            <div class="developer-notes">
+                <h3>📚 Developer Notes</h3>
+                <p>
+                    <strong>Purpose:</strong> Test dynamic world systems that respond to player actions and time. 
+                    Simulates living ecosystems with interconnected variables that create consequences for over-harvesting.
+                </p>
+                <ul>
+                    <li><strong>Resource Regeneration:</strong> Flora and fauna replenish over time based on world health</li>
+                    <li><strong>Environmental Impact:</strong> Harvesting reduces population density and world health</li>
+                    <li><strong>Recovery Mechanics:</strong> Waiting allows ecosystems to recover, encouraging sustainable play</li>
+                    <li><strong>Environmental Factors:</strong> Temperature, radiation, and weather affect resource availability</li>
+                </ul>
+                <p class="design-goal">
+                    <strong>Design Goal:</strong> Discourage farming single locations by making ecosystems depletable. 
+                    Reward exploration and rotation between biomes. Create tension between short-term gains and long-term sustainability.
+                </p>
+            </div>
+            
             <div class="ecology-grid">
                 <div class="biome-view">
-                    <h3>Biome State</h3>
+                    <h3>Biome Visualization</h3>
                     <canvas id="ecologyCanvas" width="400" height="300"></canvas>
                     <div class="ecology-controls">
                         <button id="advanceTime" class="action-btn">Advance Time (1hr)</button>
+                        <button id="advanceDay" class="action-btn">Skip Day (24hr)</button>
                         <button id="harvestResource" class="action-btn">Harvest Resource</button>
-                        <button id="resetEcology" class="action-btn secondary">Reset</button>
+                        <button id="resetEcology" class="action-btn secondary">Reset Biome</button>
                     </div>
                 </div>
                 <div class="ecology-stats">
@@ -382,6 +402,22 @@
                         </div>
                         <span id="healthValue">100%</span>
                     </div>
+                    
+                    <div style="margin-top: 20px; padding: 15px; background: rgba(0,0,0,0.3); border-radius: 5px;">
+                        <h4 style="margin-bottom: 10px; color: var(--primary);">Harvest Impact</h4>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 0.9em;">
+                            <div>
+                                <strong>Total Harvests:</strong> <span id="harvestCount">0</span>
+                            </div>
+                            <div>
+                                <strong>Recovery Time:</strong> <span id="recoveryTime">0 hrs</span>
+                            </div>
+                        </div>
+                        <div style="margin-top: 10px; padding: 10px; background: rgba(241, 196, 15, 0.1); border-left: 3px solid var(--warning); border-radius: 3px;">
+                            <small id="harvestWarning">Ecosystem stable. Sustainable harvesting possible.</small>
+                        </div>
+                    </div>
+                    
                     <div class="ecology-log">
                         <h4>Event Log</h4>
                         <div id="ecologyLog"></div>
