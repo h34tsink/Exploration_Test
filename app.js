@@ -146,6 +146,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   initLoopTimer();
   initMetricsDashboard();
   initializeSettings();
+  initGameTags();
 });
 
 // Tab Navigation
@@ -3086,5 +3087,584 @@ function resetSettings() {
   updateSettingsUI();
   saveSettings();
   showSettingsStatus();
+}
+
+// ==================== GAMETAGS GENERATOR ====================
+
+const gameTagsState = {
+  tags: [],
+  filteredTags: [],
+  selectedCategories: new Set([
+    "discovery",
+    "object",
+    "rarity",
+    "biome",
+    "science",
+    "tech",
+    "state",
+    "event",
+  ]),
+};
+
+function initGameTags() {
+  // Add event listeners
+  const generateBtn = document.getElementById("generateAllTags");
+  const exportINIBtn = document.getElementById("exportTagsINI");
+  const exportCPPBtn = document.getElementById("exportTagsCPP");
+  const copyBtn = document.getElementById("copyTagsClipboard");
+  const clearBtn = document.getElementById("clearTags");
+  const searchInput = document.getElementById("tagSearch");
+
+  if (generateBtn) generateBtn.addEventListener("click", generateAllGameTags);
+  if (exportINIBtn)
+    exportINIBtn.addEventListener("click", () => exportTags("ini"));
+  if (exportCPPBtn)
+    exportCPPBtn.addEventListener("click", () => exportTags("cpp"));
+  if (copyBtn) copyBtn.addEventListener("click", copyTagsToClipboard);
+  if (clearBtn) clearBtn.addEventListener("click", clearAllTags);
+  if (searchInput) searchInput.addEventListener("input", filterTags);
+
+  // Category checkboxes
+  document
+    .querySelectorAll(".category-item input[type='checkbox']")
+    .forEach((checkbox) => {
+      checkbox.addEventListener("change", handleCategoryToggle);
+    });
+
+  // Export format tabs
+  document.querySelectorAll(".export-tab-btn").forEach((btn) => {
+    btn.addEventListener("click", (e) => {
+      document
+        .querySelectorAll(".export-tab-btn")
+        .forEach((b) => b.classList.remove("active"));
+      e.target.classList.add("active");
+      updateExportPreview(e.target.dataset.format);
+    });
+  });
+}
+
+function generateAllGameTags() {
+  gameTagsState.tags = [];
+
+  // Generate tags for each enabled category
+  if (gameTagsState.selectedCategories.has("discovery")) {
+    generateDiscoveryTags();
+  }
+  if (gameTagsState.selectedCategories.has("object")) {
+    generateObjectTags();
+  }
+  if (gameTagsState.selectedCategories.has("rarity")) {
+    generateRarityTags();
+  }
+  if (gameTagsState.selectedCategories.has("biome")) {
+    generateBiomeTags();
+  }
+  if (gameTagsState.selectedCategories.has("science")) {
+    generateScienceTags();
+  }
+  if (gameTagsState.selectedCategories.has("tech")) {
+    generateTechTags();
+  }
+  if (gameTagsState.selectedCategories.has("state")) {
+    generateStateTags();
+  }
+  if (gameTagsState.selectedCategories.has("event")) {
+    generateEventTags();
+  }
+
+  // Update UI
+  gameTagsState.filteredTags = [...gameTagsState.tags];
+  updateTagDisplay();
+  updateTagStatistics();
+  updateCategoryCounts();
+  updateExportPreview("ini");
+  document.getElementById("exportPreview").style.display = "block";
+}
+
+function generateDiscoveryTags() {
+  const discoveryTags = [
+    { tag: "Discovery", desc: "Root tag for all discovery mechanics" },
+    { tag: "Discovery.Verb", desc: "Exploration interaction verbs" },
+    { tag: "Discovery.Verb.Trace", desc: "Triangulate signals/radiation" },
+    {
+      tag: "Discovery.Verb.Sample",
+      desc: "Collect biological/chemical samples",
+    },
+    { tag: "Discovery.Verb.Decode", desc: "Solve pattern puzzles" },
+    { tag: "Discovery.Verb.Shadow", desc: "Track migratory species" },
+    { tag: "Discovery.Verb.Excavate", desc: "Dig/drill into ruins" },
+    { tag: "Discovery.Type", desc: "Discovery classification" },
+    { tag: "Discovery.Type.Passive", desc: "Automatic detection" },
+    { tag: "Discovery.Type.Active", desc: "Player-initiated action" },
+    { tag: "Discovery.Type.Timed", desc: "Time-based discovery window" },
+    { tag: "Discovery.Difficulty", desc: "Discovery challenge level" },
+    { tag: "Discovery.Difficulty.Easy", desc: "Low skill requirement" },
+    { tag: "Discovery.Difficulty.Medium", desc: "Moderate skill requirement" },
+    { tag: "Discovery.Difficulty.Hard", desc: "High skill requirement" },
+    { tag: "Discovery.Difficulty.Expert", desc: "Expert skill requirement" },
+  ];
+
+  gameTagsState.tags.push(...discoveryTags);
+}
+
+function generateObjectTags() {
+  const objectTags = [
+    { tag: "Object", desc: "Root tag for discoverable objects" },
+    { tag: "Object.Type", desc: "Object type classification" },
+    { tag: "Object.Type.Plant", desc: "Flora specimens" },
+    { tag: "Object.Type.Animal", desc: "Fauna specimens" },
+    { tag: "Object.Type.Mineral", desc: "Mineral deposits" },
+    { tag: "Object.Type.Crystal", desc: "Crystalline formations" },
+    { tag: "Object.Type.Gas", desc: "Atmospheric gases" },
+    { tag: "Object.Type.Artifact", desc: "Ancient artifacts" },
+    { tag: "Object.Type.Microorganism", desc: "Microscopic life" },
+    { tag: "Object.Type.Compound", desc: "Chemical compounds" },
+    { tag: "Object.Domain", desc: "Scientific domain" },
+    { tag: "Object.Domain.Life", desc: "Biological objects" },
+    { tag: "Object.Domain.Physical", desc: "Physical/chemical objects" },
+    { tag: "Object.Domain.Applied", desc: "Engineered/artificial objects" },
+  ];
+
+  gameTagsState.tags.push(...objectTags);
+}
+
+function generateRarityTags() {
+  const rarityTags = [
+    { tag: "Rarity", desc: "Object rarity classification" },
+    { tag: "Rarity.Common", desc: "Common finds (60% drop rate)" },
+    { tag: "Rarity.Uncommon", desc: "Uncommon finds (25% drop rate)" },
+    { tag: "Rarity.Rare", desc: "Rare finds (10% drop rate)" },
+    { tag: "Rarity.Epic", desc: "Epic finds (3% drop rate)" },
+    { tag: "Rarity.Legendary", desc: "Legendary finds (2% drop rate)" },
+  ];
+
+  gameTagsState.tags.push(...rarityTags);
+}
+
+function generateBiomeTags() {
+  const biomeTags = [
+    { tag: "Biome", desc: "Environmental location tags" },
+    { tag: "Biome.Volcanic", desc: "Volcanic planets/regions" },
+    { tag: "Biome.Arctic", desc: "Arctic/frozen environments" },
+    { tag: "Biome.Forest", desc: "Forest/jungle planets" },
+    { tag: "Biome.Desert", desc: "Desert/arid worlds" },
+    { tag: "Biome.Ocean", desc: "Ocean/water worlds" },
+    { tag: "Biome.Cave", desc: "Cave systems" },
+    { tag: "Biome.Asteroid", desc: "Asteroid fields" },
+    { tag: "Biome.Space", desc: "Deep space/void" },
+    { tag: "Biome.Radioactive", desc: "Radioactive zones" },
+  ];
+
+  gameTagsState.tags.push(...biomeTags);
+}
+
+function generateScienceTags() {
+  const scienceTags = [
+    { tag: "Science", desc: "Scientific field classification" },
+    { tag: "Science.Biology", desc: "Biological sciences" },
+    { tag: "Science.Biology.Genetics", desc: "Genetic studies" },
+    { tag: "Science.Biology.Physiology", desc: "Physiological studies" },
+    { tag: "Science.Biology.Taxonomy", desc: "Classification studies" },
+    { tag: "Science.Biology.Behavior", desc: "Behavioral studies" },
+    { tag: "Science.Chemistry", desc: "Chemical sciences" },
+    { tag: "Science.Chemistry.Organic", desc: "Organic chemistry" },
+    { tag: "Science.Chemistry.Inorganic", desc: "Inorganic chemistry" },
+    { tag: "Science.Chemistry.Analytical", desc: "Analytical chemistry" },
+    { tag: "Science.Chemistry.Synthesis", desc: "Chemical synthesis" },
+    { tag: "Science.Physics", desc: "Physical sciences" },
+    { tag: "Science.Physics.Energy", desc: "Energy studies" },
+    { tag: "Science.Physics.Matter", desc: "Matter studies" },
+    { tag: "Science.Physics.Quantum", desc: "Quantum physics" },
+    { tag: "Science.Physics.Thermodynamics", desc: "Thermodynamic studies" },
+    { tag: "Science.Geology", desc: "Geological sciences" },
+    { tag: "Science.Geology.Minerals", desc: "Mineralogy" },
+    { tag: "Science.Geology.Tectonics", desc: "Tectonic studies" },
+    { tag: "Science.Geology.Stratigraphy", desc: "Stratigraphic analysis" },
+    { tag: "Science.Geology.Crystallography", desc: "Crystal structure" },
+    { tag: "Science.Ecology", desc: "Ecological sciences" },
+    { tag: "Science.Ecology.Population", desc: "Population dynamics" },
+    { tag: "Science.Ecology.Environment", desc: "Environmental studies" },
+    { tag: "Science.Ecology.Biodiversity", desc: "Biodiversity analysis" },
+    { tag: "Science.Ecology.Systems", desc: "Ecosystem analysis" },
+    { tag: "Science.Astronomy", desc: "Astronomical sciences" },
+    { tag: "Science.Astronomy.Planetary", desc: "Planetary science" },
+    { tag: "Science.Astronomy.Stellar", desc: "Stellar studies" },
+    { tag: "Science.Astronomy.Cosmology", desc: "Cosmological studies" },
+    { tag: "Science.Astronomy.Astrobiology", desc: "Astrobiological studies" },
+    { tag: "Science.Engineering", desc: "Engineering sciences" },
+    { tag: "Science.Engineering.Materials", desc: "Materials engineering" },
+    { tag: "Science.Engineering.Energy", desc: "Energy systems" },
+    { tag: "Science.Engineering.Propulsion", desc: "Propulsion systems" },
+    { tag: "Science.Engineering.Computing", desc: "Computing systems" },
+    { tag: "Science.Medicine", desc: "Medical sciences" },
+    { tag: "Science.Medicine.Pharmacology", desc: "Drug studies" },
+    { tag: "Science.Medicine.Xenobiology", desc: "Alien biology" },
+    { tag: "Science.Medicine.Toxicology", desc: "Toxin studies" },
+    { tag: "Science.Medicine.Genetics", desc: "Medical genetics" },
+  ];
+
+  gameTagsState.tags.push(...scienceTags);
+}
+
+function generateTechTags() {
+  const techTags = [
+    { tag: "Tech", desc: "Technology unlock branches" },
+    { tag: "Tech.Biotech", desc: "Biotechnology research" },
+    { tag: "Tech.Energy", desc: "Energy & physics research" },
+    { tag: "Tech.Environmental", desc: "Environmental systems" },
+    { tag: "Tech.Spacecraft", desc: "Spacecraft technology" },
+    { tag: "Tech.PowerArmor", desc: "Power armor systems" },
+    { tag: "Tech.Personal", desc: "Personal equipment" },
+    { tag: "Tech.Medical", desc: "Medical technology" },
+    { tag: "Tech.Weapons", desc: "Weapons systems" },
+    { tag: "Tech.Nanotech", desc: "Nanotechnology" },
+    { tag: "Tech.Xenobiology", desc: "Xenobiology research" },
+  ];
+
+  gameTagsState.tags.push(...techTags);
+}
+
+function generateStateTags() {
+  const stateTags = [
+    { tag: "State", desc: "Object and gameplay states" },
+    { tag: "State.Discovered", desc: "Already discovered" },
+    { tag: "State.Undiscovered", desc: "Not yet discovered" },
+    { tag: "State.FirstDiscovery", desc: "First global discovery" },
+    { tag: "State.Analyzed", desc: "Fully analyzed" },
+    { tag: "State.Partial", desc: "Partially analyzed" },
+    { tag: "State.Evolved", desc: "Evolved/mutated" },
+    { tag: "State.Depleted", desc: "Resource depleted" },
+    { tag: "State.Regenerating", desc: "Currently regenerating" },
+    { tag: "State.Available", desc: "Available for harvest" },
+    { tag: "State.Locked", desc: "Locked/inaccessible" },
+    { tag: "State.Unlocked", desc: "Unlocked/accessible" },
+  ];
+
+  gameTagsState.tags.push(...stateTags);
+}
+
+function generateEventTags() {
+  const eventTags = [
+    { tag: "Event", desc: "Gameplay events" },
+    { tag: "Event.Discovery", desc: "Discovery event" },
+    { tag: "Event.Discovery.First", desc: "First discovery event" },
+    { tag: "Event.Discovery.Duplicate", desc: "Duplicate discovery" },
+    { tag: "Event.Harvest", desc: "Resource harvest event" },
+    { tag: "Event.Harvest.Success", desc: "Successful harvest" },
+    { tag: "Event.Harvest.Failed", desc: "Failed harvest" },
+    { tag: "Event.Harvest.Overharvest", desc: "Overharvesting detected" },
+    { tag: "Event.Evolution", desc: "Evolution/mutation event" },
+    { tag: "Event.TechUnlock", desc: "Technology unlocked" },
+    { tag: "Event.Ecology", desc: "Ecological event" },
+    { tag: "Event.Ecology.Critical", desc: "Critical ecosystem state" },
+    { tag: "Event.Ecology.Stressed", desc: "Stressed ecosystem" },
+    { tag: "Event.Ecology.Recovered", desc: "Ecosystem recovered" },
+    { tag: "Event.Mystery", desc: "Mystery discovery event" },
+    { tag: "Event.Mystery.Landmark", desc: "Landmark discovered" },
+    { tag: "Event.Mystery.Secret", desc: "Hidden secret found" },
+  ];
+
+  gameTagsState.tags.push(...eventTags);
+}
+
+function updateTagDisplay() {
+  const tagTree = document.getElementById("tagTree");
+  const tagCount = document.getElementById("tagCount");
+
+  if (gameTagsState.filteredTags.length === 0) {
+    tagTree.innerHTML =
+      '<p style="color: #95a5a6; font-style: italic; text-align: center; padding: 40px;">No tags generated or all filtered out</p>';
+    tagCount.textContent = "0 tags";
+    return;
+  }
+
+  // Build hierarchical structure
+  const hierarchy = buildTagHierarchy(gameTagsState.filteredTags);
+  tagTree.innerHTML = renderTagHierarchy(hierarchy);
+  tagCount.textContent = `${gameTagsState.filteredTags.length} tags`;
+}
+
+function buildTagHierarchy(tags) {
+  const root = {};
+
+  tags.forEach((tagObj) => {
+    const parts = tagObj.tag.split(".");
+    let current = root;
+
+    parts.forEach((part, index) => {
+      if (!current[part]) {
+        current[part] = {
+          name: part,
+          fullTag: parts.slice(0, index + 1).join("."),
+          description: index === parts.length - 1 ? tagObj.desc : "",
+          children: {},
+        };
+      }
+      current = current[part].children;
+    });
+  });
+
+  return root;
+}
+
+function renderTagHierarchy(hierarchy, depth = 0) {
+  let html = "";
+
+  Object.values(hierarchy).forEach((node) => {
+    const hasChildren = Object.keys(node.children).length > 0;
+    const nodeClass = depth === 0 ? "root" : "";
+    const tagClass = hasChildren ? "parent" : "leaf";
+
+    html += `<div class="tag-node ${nodeClass}">`;
+    html += `<span class="tag-name ${tagClass}">${node.fullTag}</span>`;
+    if (node.description) {
+      html += `<span class="tag-description">${node.description}</span>`;
+    }
+
+    if (hasChildren) {
+      html += renderTagHierarchy(node.children, depth + 1);
+    }
+
+    html += "</div>";
+  });
+
+  return html;
+}
+
+function updateTagStatistics() {
+  const totalTags = gameTagsState.tags.length;
+  const parentTags = gameTagsState.tags.filter((t) =>
+    gameTagsState.tags.some((child) => child.tag.startsWith(t.tag + "."))
+  ).length;
+  const leafTags = totalTags - parentTags;
+  const maxDepth = Math.max(
+    ...gameTagsState.tags.map((t) => t.tag.split(".").length)
+  );
+
+  document.getElementById("totalTags").textContent = totalTags;
+  document.getElementById("parentTags").textContent = parentTags;
+  document.getElementById("leafTags").textContent = leafTags;
+  document.getElementById("maxDepth").textContent = maxDepth;
+}
+
+function updateCategoryCounts() {
+  const categories = {
+    discovery: gameTagsState.tags.filter((t) => t.tag.startsWith("Discovery"))
+      .length,
+    object: gameTagsState.tags.filter((t) => t.tag.startsWith("Object")).length,
+    rarity: gameTagsState.tags.filter((t) => t.tag.startsWith("Rarity")).length,
+    biome: gameTagsState.tags.filter((t) => t.tag.startsWith("Biome")).length,
+    science: gameTagsState.tags.filter((t) => t.tag.startsWith("Science"))
+      .length,
+    tech: gameTagsState.tags.filter((t) => t.tag.startsWith("Tech")).length,
+    state: gameTagsState.tags.filter((t) => t.tag.startsWith("State")).length,
+    event: gameTagsState.tags.filter((t) => t.tag.startsWith("Event")).length,
+  };
+
+  Object.entries(categories).forEach(([key, count]) => {
+    const checkbox = document.getElementById(`cat-${key}`);
+    if (checkbox) {
+      const label = checkbox.nextElementSibling;
+      const countSpan = label.querySelector(".tag-count");
+      if (countSpan) countSpan.textContent = count;
+    }
+  });
+}
+
+function handleCategoryToggle(e) {
+  const category = e.target.id.replace("cat-", "");
+
+  if (e.target.checked) {
+    gameTagsState.selectedCategories.add(category);
+  } else {
+    gameTagsState.selectedCategories.delete(category);
+  }
+
+  // Regenerate if tags already exist
+  if (gameTagsState.tags.length > 0) {
+    generateAllGameTags();
+  }
+}
+
+function filterTags(e) {
+  const searchTerm = e.target.value.toLowerCase();
+
+  if (!searchTerm) {
+    gameTagsState.filteredTags = [...gameTagsState.tags];
+  } else {
+    gameTagsState.filteredTags = gameTagsState.tags.filter(
+      (t) =>
+        t.tag.toLowerCase().includes(searchTerm) ||
+        t.desc.toLowerCase().includes(searchTerm)
+    );
+  }
+
+  updateTagDisplay();
+}
+
+function exportTags(format) {
+  if (gameTagsState.tags.length === 0) {
+    alert("No tags to export. Generate tags first!");
+    return;
+  }
+
+  let content = "";
+  let filename = "";
+
+  switch (format) {
+    case "ini":
+      content = generateINIFormat();
+      filename = `DefaultGameplayTags_${Date.now()}.ini`;
+      break;
+    case "cpp":
+      content = generateCPPFormat();
+      filename = `ExplorationGameplayTags_${Date.now()}.h`;
+      break;
+    case "json":
+      content = JSON.stringify(gameTagsState.tags, null, 2);
+      filename = `GameplayTags_${Date.now()}.json`;
+      break;
+  }
+
+  // Download file
+  const blob = new Blob([content], { type: "text/plain" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function generateINIFormat() {
+  let ini = "; Unreal Engine GameplayTags Configuration\n";
+  ini += "; Generated by Nova Praxis Exploration System Tester\n";
+  ini += `; Generated: ${new Date().toISOString()}\n`;
+  ini += `; Total Tags: ${gameTagsState.tags.length}\n\n`;
+  ini += "[/Script/GameplayTags.GameplayTagsSettings]\n\n";
+
+  gameTagsState.tags.forEach((tagObj) => {
+    ini += `+GameplayTagList=(Tag="${tagObj.tag}",DevComment="${tagObj.desc}")\n`;
+  });
+
+  return ini;
+}
+
+function generateCPPFormat() {
+  let cpp = "// Unreal Engine GameplayTags Header\n";
+  cpp += "// Generated by Nova Praxis Exploration System Tester\n";
+  cpp += `// Generated: ${new Date().toISOString()}\n`;
+  cpp += `// Total Tags: ${gameTagsState.tags.length}\n\n`;
+  cpp += "#pragma once\n\n";
+  cpp += '#include "NativeGameplayTags.h"\n\n';
+  cpp += "namespace ExplorationGameplayTags\n{\n";
+
+  // Group by root category
+  const grouped = {};
+  gameTagsState.tags.forEach((tagObj) => {
+    const root = tagObj.tag.split(".")[0];
+    if (!grouped[root]) grouped[root] = [];
+    grouped[root].push(tagObj);
+  });
+
+  Object.entries(grouped).forEach(([root, tags]) => {
+    cpp += `\n\t// ${root} Tags\n`;
+    tags.forEach((tagObj) => {
+      const varName = tagObj.tag.replace(/\./g, "_");
+      cpp += `\tUE_DECLARE_GAMEPLAY_TAG_EXTERN(${varName}); // ${tagObj.desc}\n`;
+    });
+  });
+
+  cpp += "\n}\n\n";
+  cpp += "// Implementation (add to .cpp file)\n";
+  cpp += "/*\n";
+  cpp += "namespace ExplorationGameplayTags\n{\n";
+
+  Object.entries(grouped).forEach(([root, tags]) => {
+    cpp += `\n\t// ${root} Tags\n`;
+    tags.forEach((tagObj) => {
+      const varName = tagObj.tag.replace(/\./g, "_");
+      cpp += `\tUE_DEFINE_GAMEPLAY_TAG(${varName}, "${tagObj.tag}");\n`;
+    });
+  });
+
+  cpp += "}\n*/\n";
+
+  return cpp;
+}
+
+function updateExportPreview(format) {
+  const preview = document.getElementById("exportContent");
+  if (!preview) return;
+
+  if (gameTagsState.tags.length === 0) {
+    preview.innerHTML = "<code>No tags generated yet</code>";
+    return;
+  }
+
+  let content = "";
+
+  switch (format) {
+    case "ini":
+      content = generateINIFormat();
+      break;
+    case "cpp":
+      content = generateCPPFormat();
+      break;
+    case "json":
+      content = JSON.stringify(gameTagsState.tags, null, 2);
+      break;
+  }
+
+  // Escape HTML
+  const escaped = content
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+  preview.innerHTML = `<code>${escaped}</code>`;
+}
+
+function copyTagsToClipboard() {
+  if (gameTagsState.tags.length === 0) {
+    alert("No tags to copy. Generate tags first!");
+    return;
+  }
+
+  const activeFormat =
+    document.querySelector(".export-tab-btn.active")?.dataset.format || "ini";
+  let content = "";
+
+  switch (activeFormat) {
+    case "ini":
+      content = generateINIFormat();
+      break;
+    case "cpp":
+      content = generateCPPFormat();
+      break;
+    case "json":
+      content = JSON.stringify(gameTagsState.tags, null, 2);
+      break;
+  }
+
+  navigator.clipboard
+    .writeText(content)
+    .then(() => {
+      alert(`${gameTagsState.tags.length} tags copied to clipboard!`);
+    })
+    .catch((err) => {
+      console.error("Failed to copy:", err);
+      alert("Failed to copy to clipboard");
+    });
+}
+
+function clearAllTags() {
+  if (!confirm("Clear all generated tags?")) return;
+
+  gameTagsState.tags = [];
+  gameTagsState.filteredTags = [];
+  updateTagDisplay();
+  updateTagStatistics();
+  updateCategoryCounts();
+  document.getElementById("exportPreview").style.display = "none";
 }
 

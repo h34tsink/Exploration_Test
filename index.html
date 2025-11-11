@@ -27,6 +27,7 @@
             <button class="tab-btn" data-tab="mystery">Mystery Budget</button>
             <button class="tab-btn" data-tab="loop">Loop Timer</button>
             <button class="tab-btn" data-tab="metrics">Metrics Dashboard</button>
+            <button class="tab-btn" data-tab="gametags">🏷️ GameTags</button>
             <button class="tab-btn" data-tab="settings">⚙️ Settings</button>
         </nav>
 
@@ -596,6 +597,165 @@
             <div class="export-controls">
                 <button id="exportMetrics" class="action-btn">Export Data (JSON)</button>
                 <button id="resetMetrics" class="action-btn secondary">Reset All Metrics</button>
+            </div>
+        </div>
+
+        <!-- GameTags Tab -->
+        <div id="gametags" class="tab-content">
+            <h2>🏷️ Unreal Engine GameTags Generator</h2>
+            
+            <div class="developer-notes">
+                <h3>📚 Developer Notes</h3>
+                <p>
+                    <strong>Purpose:</strong> Generate hierarchical gameplay tags for Unreal Engine 5 based on your exploration system. 
+                    GameTags enable data-driven gameplay logic, searchable categorization, and modular ability systems.
+                </p>
+                <ul>
+                    <li><strong>Hierarchical Structure:</strong> Tags follow parent.child.grandchild format (e.g., Discovery.Verb.Trace)</li>
+                    <li><strong>Query Support:</strong> Parent tags automatically match child tags in queries</li>
+                    <li><strong>INI Format:</strong> Direct export to DefaultGameplayTags.ini for your UE5 project</li>
+                    <li><strong>C++ Header:</strong> Generate tag definitions for native code access</li>
+                </ul>
+                <p class="design-goal">
+                    <strong>Use Case:</strong> Tag objects, abilities, and states in your exploration game. 
+                    Use tags for ability activation, object categorization, quest tracking, and gameplay events.
+                </p>
+            </div>
+
+            <div class="gametags-actions" style="margin-bottom: 30px; display: flex; gap: 10px; flex-wrap: wrap;">
+                <button id="generateAllTags" class="action-btn">🔄 Generate All Tags</button>
+                <button id="exportTagsINI" class="action-btn">📥 Export INI File</button>
+                <button id="exportTagsCPP" class="action-btn">📥 Export C++ Header</button>
+                <button id="copyTagsClipboard" class="action-btn secondary">📋 Copy to Clipboard</button>
+                <button id="clearTags" class="action-btn secondary">🗑️ Clear All</button>
+            </div>
+
+            <div class="gametags-container">
+                <!-- Tag Categories -->
+                <div class="tag-categories">
+                    <h3>Tag Categories</h3>
+                    <div class="category-list">
+                        <div class="category-item">
+                            <input type="checkbox" id="cat-discovery" checked>
+                            <label for="cat-discovery">
+                                <strong>Discovery</strong>
+                                <span class="tag-count">0</span>
+                            </label>
+                            <p>Exploration verbs and discovery mechanics</p>
+                        </div>
+                        
+                        <div class="category-item">
+                            <input type="checkbox" id="cat-object" checked>
+                            <label for="cat-object">
+                                <strong>Object</strong>
+                                <span class="tag-count">0</span>
+                            </label>
+                            <p>Discoverable object types and classifications</p>
+                        </div>
+                        
+                        <div class="category-item">
+                            <input type="checkbox" id="cat-rarity" checked>
+                            <label for="cat-rarity">
+                                <strong>Rarity</strong>
+                                <span class="tag-count">0</span>
+                            </label>
+                            <p>Object rarity tiers</p>
+                        </div>
+                        
+                        <div class="category-item">
+                            <input type="checkbox" id="cat-biome" checked>
+                            <label for="cat-biome">
+                                <strong>Biome</strong>
+                                <span class="tag-count">0</span>
+                            </label>
+                            <p>Environmental locations</p>
+                        </div>
+                        
+                        <div class="category-item">
+                            <input type="checkbox" id="cat-science" checked>
+                            <label for="cat-science">
+                                <strong>Science</strong>
+                                <span class="tag-count">0</span>
+                            </label>
+                            <p>Scientific fields and subfields</p>
+                        </div>
+                        
+                        <div class="category-item">
+                            <input type="checkbox" id="cat-tech" checked>
+                            <label for="cat-tech">
+                                <strong>Tech</strong>
+                                <span class="tag-count">0</span>
+                            </label>
+                            <p>Technology branches</p>
+                        </div>
+                        
+                        <div class="category-item">
+                            <input type="checkbox" id="cat-state" checked>
+                            <label for="cat-state">
+                                <strong>State</strong>
+                                <span class="tag-count">0</span>
+                            </label>
+                            <p>Object and gameplay states</p>
+                        </div>
+                        
+                        <div class="category-item">
+                            <input type="checkbox" id="cat-event" checked>
+                            <label for="cat-event">
+                                <strong>Event</strong>
+                                <span class="tag-count">0</span>
+                            </label>
+                            <p>Gameplay events and triggers</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tag Preview -->
+                <div class="tag-preview">
+                    <h3>Generated GameTags</h3>
+                    <div class="tag-search">
+                        <input type="text" id="tagSearch" placeholder="Search tags...">
+                        <span id="tagCount">0 tags</span>
+                    </div>
+                    <div id="tagTree" class="tag-tree">
+                        <p style="color: #95a5a6; font-style: italic; text-align: center; padding: 40px;">
+                            Click "Generate All Tags" to create gameplay tags
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Export Preview -->
+            <div class="export-preview" id="exportPreview" style="display: none;">
+                <h3>Export Preview</h3>
+                <div class="export-tabs">
+                    <button class="export-tab-btn active" data-format="ini">DefaultGameplayTags.ini</button>
+                    <button class="export-tab-btn" data-format="cpp">GameplayTagsHeader.h</button>
+                    <button class="export-tab-btn" data-format="json">JSON</button>
+                </div>
+                <pre id="exportContent"><code></code></pre>
+            </div>
+
+            <!-- Tag Statistics -->
+            <div class="tag-statistics">
+                <h3>Tag Statistics</h3>
+                <div class="stats-grid">
+                    <div class="stat-box">
+                        <div class="stat-value" id="totalTags">0</div>
+                        <div class="stat-label">Total Tags</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value" id="parentTags">0</div>
+                        <div class="stat-label">Parent Tags</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value" id="leafTags">0</div>
+                        <div class="stat-label">Leaf Tags</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value" id="maxDepth">0</div>
+                        <div class="stat-label">Max Depth</div>
+                    </div>
+                </div>
             </div>
         </div>
 
