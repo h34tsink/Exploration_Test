@@ -135,13 +135,15 @@ Real-time KPI tracking and session analysis:
 
 ```
 Exploration_Test/
-├── index.html          # Main application UI (490 lines)
-├── app.js             # Core logic and state management (1996 lines)
-├── styles.css         # Dark space theme styling (1100+ lines)
-├── data.json          # Scientific fields & tech tree data (2447 lines)
+├── index.html          # Main application UI (581 lines)
+├── app.js             # Core logic and state management (2162 lines)
+├── styles.css         # Dark space theme styling (987 lines)
+├── data.json          # Scientific fields & tech tree data (262 lines)
 ├── start_server.py    # LAN-accessible HTTP server
 ├── start.bat          # Windows startup script
 ├── start.sh           # Linux/Mac startup script
+├── .gitignore         # Git ignore patterns
+├── .hintrc            # Hint configuration
 └── docs/
     └── exploration_overhaul_design.md
 ```
@@ -264,6 +266,37 @@ Requires HTML5 Canvas support and ES6 JavaScript features.
 - Canvas rendering may vary slightly across browsers
 - Large inventories (100+ objects) may impact performance
 
+## Troubleshooting
+
+### Server Won't Start
+
+If you encounter issues starting the server:
+
+```powershell
+# Check if port 8000 is already in use
+netstat -ano | findstr :8000
+
+# Try using Python directly
+python start_server.py
+
+# Or specify a different port
+python -m http.server 8001
+```
+
+### Can't Access Over LAN
+
+1. Check Windows Firewall settings
+2. Ensure devices are on the same network
+3. Verify your IP address: `ipconfig` (Windows) or `ifconfig` (Linux/Mac)
+4. Try accessing with the IP shown in the server output
+
+### Page Loads But Data Doesn't Appear
+
+- Ensure `data.json` is in the same directory
+- Check browser console for errors (F12)
+- Verify server is running (shouldn't get 404 errors)
+- Try a hard refresh (Ctrl + Shift + R)
+
 ## Future Enhancements
 
 Potential additions:
@@ -276,6 +309,7 @@ Potential additions:
 
 ---
 
-**Version:** 1.0  
-**Last Updated:** November 2025  
+**Version:** 1.1  
+**Last Updated:** November 10, 2025  
+**Repository:** [h34tsink/Exploration_Test](https://github.com/h34tsink/Exploration_Test)  
 **Based on:** Exploration Overhaul Design Document v1.0
