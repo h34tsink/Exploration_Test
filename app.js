@@ -31,6 +31,63 @@ const state = {
     predictions: { total: 0, correct: 0 },
     history: [],
   },
+  settings: {
+    statPools: {
+      common: 300,
+      uncommon: 450,
+      rare: 600,
+      epic: 800,
+      legendary: 1000,
+    },
+    dropRates: {
+      common: 60,
+      uncommon: 25,
+      rare: 10,
+      unique: 5,
+    },
+    repValues: {
+      common: 20,
+      uncommon: 50,
+      rare: 100,
+      unique: 250,
+    },
+    firstDiscovererMultiplier: 2,
+    diminishingReturnsRate: 5,
+    repFloor: 10,
+    ecology: {
+      floraRegenRate: 2,
+      faunaRegenRate: 1.5,
+      healthRegenRate: 1,
+      floraLossPerHarvest: 8,
+      faunaLossPerHarvest: 5,
+      healthLossPerHarvest: 3,
+      criticalThreshold: 30,
+      stressedThreshold: 60,
+      frequentHarvestWarning: 5,
+    },
+    mysteryBudget: {
+      sparse: { landmarks: [1, 2], microPoints: [8, 12], secrets: [2, 3] },
+      normal: { landmarks: [2, 3], microPoints: [15, 25], secrets: [3, 5] },
+      dense: { landmarks: [3, 5], microPoints: [30, 40], secrets: [5, 8] },
+    },
+    mutation: {
+      minBoost: 10,
+      maxBoost: 25,
+      allowMultiple: true,
+    },
+    loopTargets: {
+      microMin: 5,
+      microMax: 8,
+      macroMin: 60,
+      macroMax: 120,
+    },
+    metricsTargets: {
+      curiosity: 25,
+      souvenirTime: 15,
+      predictive: 60,
+      parityTolerance: 12,
+    },
+  },
 };
 
 // Global data loaded from JSON
@@ -88,6 +145,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   initMysteryBudget();
   initLoopTimer();
   initMetricsDashboard();
+  initializeSettings();
 });
 
 // Tab Navigation
@@ -548,24 +606,19 @@ function generateMaterial(type, biome, rarityOverride = "random") {
   if (rarityOverride !== "random") {
     rarity = rarityOverride;
   } else {
-    const rarityRoll = Math.random();
-    if (rarityRoll < 0.5) rarity = "common";
-    else if (rarityRoll < 0.75) rarity = "uncommon";
-    else if (rarityRoll < 0.9) rarity = "rare";
-    else if (rarityRoll < 0.97) rarity = "epic";
+    const rarityRoll = Math.random() * 100;
+    const { common, uncommon, rare } = state.settings.dropRates;
+
+    if (rarityRoll < common) rarity = "common";
+    else if (rarityRoll < common + uncommon) rarity = "uncommon";
+    else if (rarityRoll < common + uncommon + rare) rarity = "rare";
+    else if (rarityRoll < 97) rarity = "epic";
     else rarity = "legendary";
   }
 
   // Stat pool based on rarity
-  const statPools = {
-    common: 300,
-    uncommon: 450,
-    rare: 600,
-    epic: 800,
-    legendary: 1000,
-  };
-
-  const totalStatPool = statPools[rarity];
+  // Use settings-based stat pools
+  const totalStatPool = state.settings.statPools[rarity];
 
   // Generate stats for all scientific fields
   const stats = {};
@@ -627,17 +680,9 @@ function generateMaterial(type, biome, rarityOverride = "random") {
     fieldTotals[field] = Object.values(stats[field]).reduce((a, b) => a + b, 0);
   });
 
-  // Calculate REP value
-  const baseREP = {
-    common: 20,
-    uncommon: 50,
-    rare: 120,
-    epic: 250,
-    legendary: 500,
-  };
-
+  // Calculate REP value using settings
   const repValue = Math.floor(
-    baseREP[rarity] *
+    state.settings.repValues[rarity] *
       (1 + Object.values(fieldTotals).reduce((a, b) => a + b, 0) / 1000)
   );
 
@@ -812,7 +857,11 @@ function evolveMaterial() {
       )
     ];
 
-  const boost = Math.floor(Math.random() * 15 + 10); // 10-25% boost
+  const boost = Math.floor(
+    Math.random() *
+      (state.settings.mutation.maxBoost - state.settings.mutation.minBoost) +
+      state.settings.mutation.minBoost
+  ); // Use settings for mutation range
   state.currentMaterial.stats[randomField][subfieldKey] = Math.min(
     100,
     state.currentMaterial.stats[randomField][subfieldKey] + boost
@@ -1306,16 +1355,19 @@ function initRewardSystem() {
 function generateReward(rarity, globalCount) {
   const rewards = {
     common: {
-      base: 20,
+      base: state.settings.repValues.common,
       types: ["Blueprint Shard", "Catalyst Sample", "Data Fragment"],
     },
     uncommon: {
-      base: 50,
+      base: state.settings.repValues.uncommon,
       types: ["Refined Catalyst", "Complete Blueprint", "Specimen Card"],
     },
-    rare: { base: 100, types: ["Artifact", "Advanced Blueprint", "Data Core"] },
+    rare: {
+      base: state.settings.repValues.rare,
+      types: ["Artifact", "Advanced Blueprint", "Data Core"],
+    },
     unique: {
-      base: 250,
+      base: state.settings.repValues.unique,
       types: ["Ancient Relic", "Legendary Blueprint", "Precursor Artifact"],
     },
   };
@@ -1324,11 +1376,17 @@ function generateReward(rarity, globalCount) {
   const type =
     rewardData.types[Math.floor(Math.random() * rewardData.types.length)];
 
-  // First discoverer bonus
-  const firstDiscovererBonus = globalCount === 0 ? 2 : 1;
+  // First discoverer bonus using settings
+  const firstDiscovererBonus =
+    globalCount === 0 ? state.settings.firstDiscovererMultiplier : 1;
 
-  // Diminishing returns for common discoveries
-  const rarityMultiplier = Math.max(0.1, 1 - globalCount * 0.05);
+  // Diminishing returns for common discoveries using settings
+  const diminishingRate = state.settings.diminishingReturnsRate / 100;
+  const minMultiplier = state.settings.repFloor / 100;
+  const rarityMultiplier = Math.max(
+    minMultiplier,
+    1 - globalCount * diminishingRate
+  );
 
   const repGain = Math.floor(
     rewardData.base * firstDiscovererBonus * rarityMultiplier
@@ -1550,18 +1608,21 @@ function advanceTime(silent = false) {
     state.ecology.faunaActivity = Math.max(20, state.ecology.faunaActivity - 3);
   }
 
-  // Recovery rate depends on world health
-  const recoveryRate = state.ecology.worldHealth > 50 ? 2 : 1;
+  // Recovery rate depends on world health (use settings)
+  const baseRecoveryRate =
+    state.ecology.worldHealth > 50
+      ? state.settings.ecology.floraRegenRate
+      : state.settings.ecology.floraRegenRate * 0.5;
 
   // Flora slowly recovers
   if (state.ecology.floraDensity < 100) {
     state.ecology.floraDensity = Math.min(
       100,
-      state.ecology.floraDensity + recoveryRate
+      state.ecology.floraDensity + baseRecoveryRate
     );
     state.ecology.worldHealth = Math.min(
       100,
-      state.ecology.worldHealth + recoveryRate * 0.5
+      state.ecology.worldHealth + state.settings.ecology.healthRegenRate
     );
   }
 
@@ -1583,16 +1644,30 @@ function harvestResource() {
   state.ecology.harvestCount++;
   const harvestPenalty = Math.min(25, 10 + state.ecology.harvestCount * 2);
 
+  // Use settings for harvest impact
   state.ecology.floraDensity = Math.max(
     0,
-    state.ecology.floraDensity - harvestPenalty
+    state.ecology.floraDensity - state.settings.ecology.floraLossPerHarvest
   );
-  state.ecology.worldHealth = Math.max(0, state.ecology.worldHealth - 10);
+  state.ecology.worldHealth = Math.max(
+    0,
+    state.ecology.worldHealth - state.settings.ecology.healthLossPerHarvest
+  );
 
-  if (state.ecology.harvestCount > 5) {
-    state.ecology.faunaActivity = Math.max(0, state.ecology.faunaActivity - 10);
+  // Use settings for frequent harvest warning threshold
+  if (
+    state.ecology.harvestCount > state.settings.ecology.frequentHarvestWarning
+  ) {
+    state.ecology.faunaActivity = Math.max(
+      0,
+      state.ecology.faunaActivity -
+        state.settings.ecology.faunaLossPerHarvest * 2
+    );
     addEcologyLog("⚠️ Overharvesting detected! Fauna migrating away.");
-  } else if (state.ecology.harvestCount > 3) {
+  } else if (
+    state.ecology.harvestCount >
+    Math.floor(state.settings.ecology.frequentHarvestWarning * 0.6)
+  ) {
     addEcologyLog(
       "⚠️ Ecosystem stress increasing. Consider waiting for recovery."
     );
@@ -2163,230 +2238,853 @@ function displayMysteryStats(container, budget) {
 
 // Loop Timer
 function initLoopTimer() {
-    const phases = document.querySelectorAll('.loop-phase');
-    
-    phases.forEach((phase, index) => {
-        const btn = phase.querySelector('.phase-btn');
-        const timeDisplay = phase.querySelector('.phase-time');
-        
-        btn.addEventListener('click', () => {
-            if (index === state.currentPhase) {
-                startPhase(index, phase, timeDisplay);
-            }
-        });
+  const phases = document.querySelectorAll(".loop-phase");
+
+  phases.forEach((phase, index) => {
+    const btn = phase.querySelector(".phase-btn");
+    const timeDisplay = phase.querySelector(".phase-time");
+
+    btn.addEventListener("click", () => {
+      if (index === state.currentPhase) {
+        startPhase(index, phase, timeDisplay);
+      }
     });
+  });
 }
 
 function startPhase(index, phaseElement, timeDisplay) {
-    state.phaseStartTime = Date.now();
-    
-    const phaseNames = ['detect', 'approach', 'interact', 'reward', 'record'];
-    const phaseName = phaseNames[index];
-    
-    const timer = setInterval(() => {
-        const elapsed = Math.floor((Date.now() - state.phaseStartTime) / 1000);
-        const minutes = Math.floor(elapsed / 60);
-        const seconds = elapsed % 60;
-        timeDisplay.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
-    }, 1000);
-    
-    phaseElement.querySelector('.phase-btn').textContent = 'Complete Phase';
-    phaseElement.querySelector('.phase-btn').onclick = () => {
-        clearInterval(timer);
-        const elapsed = Math.floor((Date.now() - state.phaseStartTime) / 1000);
-        state.loopTimers[phaseName] = elapsed;
-        
-        phaseElement.classList.add('completed');
-        phaseElement.classList.remove('active');
-        
-        if (index < 4) {
-            state.currentPhase = index + 1;
-            document.querySelectorAll('.loop-phase')[index + 1].classList.add('active');
-        } else {
-            completeLoop();
-        }
-    };
+  state.phaseStartTime = Date.now();
+
+  const phaseNames = ["detect", "approach", "interact", "reward", "record"];
+  const phaseName = phaseNames[index];
+
+  const timer = setInterval(() => {
+    const elapsed = Math.floor((Date.now() - state.phaseStartTime) / 1000);
+    const minutes = Math.floor(elapsed / 60);
+    const seconds = elapsed % 60;
+    timeDisplay.textContent = `${minutes}:${seconds
+      .toString()
+      .padStart(2, "0")}`;
+  }, 1000);
+
+  phaseElement.querySelector(".phase-btn").textContent = "Complete Phase";
+  phaseElement.querySelector(".phase-btn").onclick = () => {
+    clearInterval(timer);
+    const elapsed = Math.floor((Date.now() - state.phaseStartTime) / 1000);
+    state.loopTimers[phaseName] = elapsed;
+
+    phaseElement.classList.add("completed");
+    phaseElement.classList.remove("active");
+
+    if (index < 4) {
+      state.currentPhase = index + 1;
+      document
+        .querySelectorAll(".loop-phase")
+        [index + 1].classList.add("active");
+    } else {
+      completeLoop();
+    }
+  };
 }
 
 function completeLoop() {
-    const totalTime = Object.values(state.loopTimers).reduce((a, b) => a + b, 0);
-    const minutes = Math.floor(totalTime / 60);
-    const seconds = totalTime % 60;
-    
-    const targetMin = 5 * 60;
-    const targetMax = 8 * 60;
-    const isOptimal = totalTime >= targetMin && totalTime <= targetMax;
-    
-    const resultsDiv = document.getElementById('loopResults');
-    resultsDiv.innerHTML = `
-        <div class="reward-item" style="border-color: ${isOptimal ? '#2ecc71' : '#f39c12'}">
+  const totalTime = Object.values(state.loopTimers).reduce((a, b) => a + b, 0);
+  const minutes = Math.floor(totalTime / 60);
+  const seconds = totalTime % 60;
+
+  const targetMin = 5 * 60;
+  const targetMax = 8 * 60;
+  const isOptimal = totalTime >= targetMin && totalTime <= targetMax;
+
+  const resultsDiv = document.getElementById("loopResults");
+  resultsDiv.innerHTML = `
+        <div class="reward-item" style="border-color: ${
+          isOptimal ? "#2ecc71" : "#f39c12"
+        }">
             <h4>Loop Complete!</h4>
-            <p><strong>Total Time:</strong> ${minutes}:${seconds.toString().padStart(2, '0')}</p>
+            <p><strong>Total Time:</strong> ${minutes}:${seconds
+    .toString()
+    .padStart(2, "0")}</p>
             <p><strong>Target Range:</strong> 5:00 - 8:00</p>
-            <p style="color: ${isOptimal ? '#2ecc71' : '#f39c12'}">
-                ${isOptimal ? '✓ Optimal pacing!' : '⚠ Outside optimal range'}
+            <p style="color: ${isOptimal ? "#2ecc71" : "#f39c12"}">
+                ${isOptimal ? "✓ Optimal pacing!" : "⚠ Outside optimal range"}
             </p>
             <div style="margin-top: 10px;">
                 <strong>Phase Breakdown:</strong>
                 <ul style="margin-left: 20px; margin-top: 5px;">
-                    ${Object.entries(state.loopTimers).map(([phase, time]) => 
-                        `<li>${phase}: ${Math.floor(time / 60)}:${(time % 60).toString().padStart(2, '0')}</li>`
-                    ).join('')}
+                    ${Object.entries(state.loopTimers)
+                      .map(
+                        ([phase, time]) =>
+                          `<li>${phase}: ${Math.floor(time / 60)}:${(time % 60)
+                            .toString()
+                            .padStart(2, "0")}</li>`
+                      )
+                      .join("")}
                 </ul>
             </div>
         </div>
     `;
-    
-    // Update metrics
-    state.metrics.loopTime = totalTime;
-    updateMetric('loopTime', totalTime, targetMin, targetMax);
-    
-    // Reset for next loop
-    setTimeout(() => {
-        state.currentPhase = 0;
-        state.loopTimers = { detect: 0, approach: 0, interact: 0, reward: 0, record: 0 };
-        document.querySelectorAll('.loop-phase').forEach((p, i) => {
-            p.classList.remove('active', 'completed');
-            p.querySelector('.phase-time').textContent = '0:00';
-            if (i === 0) p.classList.add('active');
-        });
-    }, 3000);
+
+  // Update metrics
+  state.metrics.loopTime = totalTime;
+  updateMetric("loopTime", totalTime, targetMin, targetMax);
+
+  // Reset for next loop
+  setTimeout(() => {
+    state.currentPhase = 0;
+    state.loopTimers = {
+      detect: 0,
+      approach: 0,
+      interact: 0,
+      reward: 0,
+      record: 0,
+    };
+    document.querySelectorAll(".loop-phase").forEach((p, i) => {
+      p.classList.remove("active", "completed");
+      p.querySelector(".phase-time").textContent = "0:00";
+      if (i === 0) p.classList.add("active");
+    });
+  }, 3000);
 }
 
 // Metrics Dashboard
 function initMetricsDashboard() {
-    const exportBtn = document.getElementById('exportMetrics');
-    const resetBtn = document.getElementById('resetMetrics');
-    
-    document.querySelectorAll('.metric-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            const metric = btn.dataset.metric;
-            simulateMetric(metric);
-        });
+  const exportBtn = document.getElementById("exportMetrics");
+  const resetBtn = document.getElementById("resetMetrics");
+
+  document.querySelectorAll(".metric-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const metric = btn.dataset.metric;
+      simulateMetric(metric);
     });
-    
-    exportBtn.addEventListener('click', exportMetrics);
-    resetBtn.addEventListener('click', resetMetrics);
-    
-    updateMetricsDisplay();
+  });
+
+  exportBtn.addEventListener("click", exportMetrics);
+  resetBtn.addEventListener("click", resetMetrics);
+
+  updateMetricsDisplay();
 }
 
 function simulateMetric(metric) {
-    switch (metric) {
-        case 'curiosity':
-            state.metrics.curiosity = Math.min(100, state.metrics.curiosity + Math.random() * 15);
-            updateMetric('curiosity', state.metrics.curiosity, 25, 100);
-            break;
-        case 'souvenir':
-            state.metrics.souvenirs++;
-            updateMetric('souvenir', state.metrics.souvenirs, 1, 5);
-            break;
-        case 'predictive':
-            state.metrics.predictions.total++;
-            if (Math.random() > 0.4) state.metrics.predictions.correct++;
-            const successRate = (state.metrics.predictions.correct / state.metrics.predictions.total) * 100;
-            updateMetric('predictive', successRate, 60, 100);
-            break;
-    }
-    
-    state.metrics.history.push({
-        timestamp: Date.now(),
-        metric,
-        value: state.metrics[metric]
-    });
-    
-    updateMetricsChart();
+  switch (metric) {
+    case "curiosity":
+      state.metrics.curiosity = Math.min(
+        100,
+        state.metrics.curiosity + Math.random() * 15
+      );
+      updateMetric("curiosity", state.metrics.curiosity, 25, 100);
+      break;
+    case "souvenir":
+      state.metrics.souvenirs++;
+      updateMetric("souvenir", state.metrics.souvenirs, 1, 5);
+      break;
+    case "predictive":
+      state.metrics.predictions.total++;
+      if (Math.random() > 0.4) state.metrics.predictions.correct++;
+      const successRate =
+        (state.metrics.predictions.correct / state.metrics.predictions.total) *
+        100;
+      updateMetric("predictive", successRate, 60, 100);
+      break;
+  }
+
+  state.metrics.history.push({
+    timestamp: Date.now(),
+    metric,
+    value: state.metrics[metric],
+  });
+
+  updateMetricsChart();
 }
 
 function updateMetric(metric, value, target, max) {
-    const displays = {
-        curiosity: { value: 'curiosityMetric', fill: 'curiosityFill', format: v => `${v.toFixed(1)}%` },
-        loopTime: { value: 'loopTimeMetric', fill: 'loopTimeFill', format: v => {
-            const m = Math.floor(v / 60);
-            const s = v % 60;
-            return `${m}:${s.toString().padStart(2, '0')}`;
-        }},
-        souvenir: { value: 'souvenirMetric', fill: 'souvenirFill', format: v => `${v}/15min` },
-        predictive: { value: 'predictiveMetric', fill: 'predictiveFill', format: v => `${v.toFixed(1)}%` }
-    };
-    
-    const display = displays[metric];
-    if (display) {
-        document.getElementById(display.value).textContent = display.format(value);
-        const percentage = Math.min(100, (value / max) * 100);
-        document.getElementById(display.fill).style.width = `${percentage}%`;
-    }
+  const displays = {
+    curiosity: {
+      value: "curiosityMetric",
+      fill: "curiosityFill",
+      format: (v) => `${v.toFixed(1)}%`,
+    },
+    loopTime: {
+      value: "loopTimeMetric",
+      fill: "loopTimeFill",
+      format: (v) => {
+        const m = Math.floor(v / 60);
+        const s = v % 60;
+        return `${m}:${s.toString().padStart(2, "0")}`;
+      },
+    },
+    souvenir: {
+      value: "souvenirMetric",
+      fill: "souvenirFill",
+      format: (v) => `${v}/15min`,
+    },
+    predictive: {
+      value: "predictiveMetric",
+      fill: "predictiveFill",
+      format: (v) => `${v.toFixed(1)}%`,
+    },
+  };
+
+  const display = displays[metric];
+  if (display) {
+    document.getElementById(display.value).textContent = display.format(value);
+    const percentage = Math.min(100, (value / max) * 100);
+    document.getElementById(display.fill).style.width = `${percentage}%`;
+  }
 }
 
 function updateMetricsDisplay() {
-    updateMetric('curiosity', state.metrics.curiosity, 25, 100);
-    updateMetric('loopTime', state.metrics.loopTime, 300, 480);
-    updateMetric('souvenir', state.metrics.souvenirs, 1, 5);
-    
-    if (state.metrics.predictions.total > 0) {
-        const successRate = (state.metrics.predictions.correct / state.metrics.predictions.total) * 100;
-        updateMetric('predictive', successRate, 60, 100);
-    }
+  updateMetric("curiosity", state.metrics.curiosity, 25, 100);
+  updateMetric("loopTime", state.metrics.loopTime, 300, 480);
+  updateMetric("souvenir", state.metrics.souvenirs, 1, 5);
+
+  if (state.metrics.predictions.total > 0) {
+    const successRate =
+      (state.metrics.predictions.correct / state.metrics.predictions.total) *
+      100;
+    updateMetric("predictive", successRate, 60, 100);
+  }
 }
 
 function updateMetricsChart() {
-    const canvas = document.getElementById('metricsChart');
-    const ctx = canvas.getContext('2d');
-    
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
-    if (state.metrics.history.length === 0) return;
-    
-    const data = state.metrics.history.slice(-20);
-    const maxValue = Math.max(...data.map(d => typeof d.value === 'number' ? d.value : 0));
-    
-    ctx.strokeStyle = '#4a90e2';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    
-    data.forEach((point, i) => {
-        const x = (i / (data.length - 1)) * (canvas.width - 40) + 20;
-        const y = canvas.height - 20 - ((point.value / maxValue) * (canvas.height - 40));
-        
-        if (i === 0) {
-            ctx.moveTo(x, y);
-        } else {
-            ctx.lineTo(x, y);
-        }
-    });
-    
-    ctx.stroke();
+  const canvas = document.getElementById("metricsChart");
+  const ctx = canvas.getContext("2d");
+
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  if (state.metrics.history.length === 0) return;
+
+  const data = state.metrics.history.slice(-20);
+  const maxValue = Math.max(
+    ...data.map((d) => (typeof d.value === "number" ? d.value : 0))
+  );
+
+  ctx.strokeStyle = "#4a90e2";
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+
+  data.forEach((point, i) => {
+    const x = (i / (data.length - 1)) * (canvas.width - 40) + 20;
+    const y =
+      canvas.height - 20 - (point.value / maxValue) * (canvas.height - 40);
+
+    if (i === 0) {
+      ctx.moveTo(x, y);
+    } else {
+      ctx.lineTo(x, y);
+    }
+  });
+
+  ctx.stroke();
 }
 
 function exportMetrics() {
-    const data = {
-        metrics: state.metrics,
-        rewards: state.rewards,
-        ecology: state.ecology,
-        loopTimers: state.loopTimers,
-        timestamp: new Date().toISOString()
-    };
-    
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `exploration-metrics-${Date.now()}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
+  const data = {
+    metrics: state.metrics,
+    rewards: state.rewards,
+    ecology: state.ecology,
+    loopTimers: state.loopTimers,
+    timestamp: new Date().toISOString(),
+  };
+
+  const blob = new Blob([JSON.stringify(data, null, 2)], {
+    type: "application/json",
+  });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `exploration-metrics-${Date.now()}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
 }
 
 function resetMetrics() {
-    if (confirm('Reset all metrics data?')) {
-        state.metrics = {
-            curiosity: 0,
-            loopTime: 0,
-            souvenirs: 0,
-            predictions: { total: 0, correct: 0 },
-            history: []
-        };
-        state.rewards = [];
-        updateMetricsDisplay();
-        updateMetricsChart();
-    }
+  if (confirm("Reset all metrics data?")) {
+    state.metrics = {
+      curiosity: 0,
+      loopTime: 0,
+      souvenirs: 0,
+      predictions: { total: 0, correct: 0 },
+      history: [],
+    };
+    state.rewards = [];
+    updateMetricsDisplay();
+    updateMetricsChart();
+  }
 }
+
+// ==================== SETTINGS MANAGEMENT ====================
+
+function initializeSettings() {
+  // Load settings from localStorage if available
+  const savedSettings = localStorage.getItem("explorationSettings");
+  if (savedSettings) {
+    try {
+      state.settings = JSON.parse(savedSettings);
+    } catch (e) {
+      console.error("Failed to load saved settings:", e);
+    }
+  }
+
+  // Populate all input fields with current settings
+  updateSettingsUI();
+
+  // Add event listeners to all settings inputs
+  const settingsInputs = document.querySelectorAll(
+    '#settings input[type="number"], #settings input[type="checkbox"]'
+  );
+  settingsInputs.forEach((input) => {
+    input.addEventListener("input", handleSettingChange);
+  });
+
+  // Add event listeners to buttons
+  const exportBtn = document.getElementById("exportSettings");
+  const importBtn = document.getElementById("importSettings");
+  const resetBtn = document.getElementById("resetSettings");
+
+  if (exportBtn) exportBtn.addEventListener("click", exportSettings);
+  if (importBtn) importBtn.addEventListener("click", importSettings);
+  if (resetBtn) resetBtn.addEventListener("click", resetSettings);
+}
+
+function updateSettingsUI() {
+  // Stat Pools
+  setInputValue("setting-statpool-common", state.settings.statPools.common);
+  setInputValue("setting-statpool-uncommon", state.settings.statPools.uncommon);
+  setInputValue("setting-statpool-rare", state.settings.statPools.rare);
+  setInputValue("setting-statpool-epic", state.settings.statPools.epic);
+  setInputValue(
+    "setting-statpool-legendary",
+    state.settings.statPools.legendary
+  );
+
+  // Drop Rates
+  setInputValue("setting-droprate-common", state.settings.dropRates.common);
+  setInputValue("setting-droprate-uncommon", state.settings.dropRates.uncommon);
+  setInputValue("setting-droprate-rare", state.settings.dropRates.rare);
+  setInputValue("setting-droprate-unique", state.settings.dropRates.unique);
+
+  // REP Values
+  setInputValue("setting-rep-common", state.settings.repValues.common);
+  setInputValue("setting-rep-uncommon", state.settings.repValues.uncommon);
+  setInputValue("setting-rep-rare", state.settings.repValues.rare);
+  setInputValue("setting-rep-unique", state.settings.repValues.unique);
+
+  // Multipliers
+  setInputValue(
+    "setting-first-discoverer",
+    state.settings.firstDiscovererMultiplier
+  );
+  setInputValue(
+    "setting-diminishing-rate",
+    state.settings.diminishingReturnsRate
+  );
+  setInputValue("setting-rep-floor", state.settings.repFloor);
+
+  // Ecology
+  setInputValue("setting-flora-regen", state.settings.ecology.floraRegenRate);
+  setInputValue("setting-fauna-regen", state.settings.ecology.faunaRegenRate);
+  setInputValue("setting-health-regen", state.settings.ecology.healthRegenRate);
+  setInputValue(
+    "setting-flora-loss",
+    state.settings.ecology.floraLossPerHarvest
+  );
+  setInputValue(
+    "setting-fauna-loss",
+    state.settings.ecology.faunaLossPerHarvest
+  );
+  setInputValue(
+    "setting-health-loss",
+    state.settings.ecology.healthLossPerHarvest
+  );
+  setInputValue(
+    "setting-critical-threshold",
+    state.settings.ecology.criticalThreshold
+  );
+  setInputValue(
+    "setting-stressed-threshold",
+    state.settings.ecology.stressedThreshold
+  );
+  setInputValue(
+    "setting-frequent-warning",
+    state.settings.ecology.frequentHarvestWarning
+  );
+
+  // Mystery Budget - Sparse
+  setInputValue(
+    "setting-sparse-landmarks-min",
+    state.settings.mysteryBudget.sparse.landmarks[0]
+  );
+  setInputValue(
+    "setting-sparse-landmarks-max",
+    state.settings.mysteryBudget.sparse.landmarks[1]
+  );
+  setInputValue(
+    "setting-sparse-micro-min",
+    state.settings.mysteryBudget.sparse.microPoints[0]
+  );
+  setInputValue(
+    "setting-sparse-micro-max",
+    state.settings.mysteryBudget.sparse.microPoints[1]
+  );
+  setInputValue(
+    "setting-sparse-secrets-min",
+    state.settings.mysteryBudget.sparse.secrets[0]
+  );
+  setInputValue(
+    "setting-sparse-secrets-max",
+    state.settings.mysteryBudget.sparse.secrets[1]
+  );
+
+  // Mystery Budget - Normal
+  setInputValue(
+    "setting-normal-landmarks-min",
+    state.settings.mysteryBudget.normal.landmarks[0]
+  );
+  setInputValue(
+    "setting-normal-landmarks-max",
+    state.settings.mysteryBudget.normal.landmarks[1]
+  );
+  setInputValue(
+    "setting-normal-micro-min",
+    state.settings.mysteryBudget.normal.microPoints[0]
+  );
+  setInputValue(
+    "setting-normal-micro-max",
+    state.settings.mysteryBudget.normal.microPoints[1]
+  );
+  setInputValue(
+    "setting-normal-secrets-min",
+    state.settings.mysteryBudget.normal.secrets[0]
+  );
+  setInputValue(
+    "setting-normal-secrets-max",
+    state.settings.mysteryBudget.normal.secrets[1]
+  );
+
+  // Mystery Budget - Dense
+  setInputValue(
+    "setting-dense-landmarks-min",
+    state.settings.mysteryBudget.dense.landmarks[0]
+  );
+  setInputValue(
+    "setting-dense-landmarks-max",
+    state.settings.mysteryBudget.dense.landmarks[1]
+  );
+  setInputValue(
+    "setting-dense-micro-min",
+    state.settings.mysteryBudget.dense.microPoints[0]
+  );
+  setInputValue(
+    "setting-dense-micro-max",
+    state.settings.mysteryBudget.dense.microPoints[1]
+  );
+  setInputValue(
+    "setting-dense-secrets-min",
+    state.settings.mysteryBudget.dense.secrets[0]
+  );
+  setInputValue(
+    "setting-dense-secrets-max",
+    state.settings.mysteryBudget.dense.secrets[1]
+  );
+
+  // Mutation
+  setInputValue("setting-mutation-min", state.settings.mutation.minBoost);
+  setInputValue("setting-mutation-max", state.settings.mutation.maxBoost);
+  setCheckboxValue(
+    "setting-multi-mutation",
+    state.settings.mutation.allowMultiple
+  );
+
+  // Loop Targets
+  setInputValue("setting-micro-loop-min", state.settings.loopTargets.microMin);
+  setInputValue("setting-micro-loop-max", state.settings.loopTargets.microMax);
+  setInputValue("setting-macro-loop-min", state.settings.loopTargets.macroMin);
+  setInputValue("setting-macro-loop-max", state.settings.loopTargets.macroMax);
+
+  // Metrics Targets
+  setInputValue(
+    "setting-curiosity-target",
+    state.settings.metricsTargets.curiosity
+  );
+  setInputValue(
+    "setting-souvenir-time",
+    state.settings.metricsTargets.souvenirTime
+  );
+  setInputValue(
+    "setting-predictive-target",
+    state.settings.metricsTargets.predictive
+  );
+  setInputValue(
+    "setting-parity-tolerance",
+    state.settings.metricsTargets.parityTolerance
+  );
+}
+
+function setInputValue(id, value) {
+  const input = document.getElementById(id);
+  if (input) {
+    input.value = value;
+    updateSettingDisplay(input);
+  }
+}
+
+function setCheckboxValue(id, value) {
+  const input = document.getElementById(id);
+  if (input) {
+    input.checked = value;
+    updateSettingDisplay(input);
+  }
+}
+
+function handleSettingChange(event) {
+  const input = event.target;
+  const id = input.id;
+  const value =
+    input.type === "checkbox" ? input.checked : parseFloat(input.value);
+
+  // Update state based on input ID
+  switch (id) {
+    // Stat Pools
+    case "setting-statpool-common":
+      state.settings.statPools.common = value;
+      break;
+    case "setting-statpool-uncommon":
+      state.settings.statPools.uncommon = value;
+      break;
+    case "setting-statpool-rare":
+      state.settings.statPools.rare = value;
+      break;
+    case "setting-statpool-epic":
+      state.settings.statPools.epic = value;
+      break;
+    case "setting-statpool-legendary":
+      state.settings.statPools.legendary = value;
+      break;
+
+    // Drop Rates
+    case "setting-droprate-common":
+      state.settings.dropRates.common = value;
+      break;
+    case "setting-droprate-uncommon":
+      state.settings.dropRates.uncommon = value;
+      break;
+    case "setting-droprate-rare":
+      state.settings.dropRates.rare = value;
+      break;
+    case "setting-droprate-unique":
+      state.settings.dropRates.unique = value;
+      break;
+
+    // REP Values
+    case "setting-rep-common":
+      state.settings.repValues.common = value;
+      break;
+    case "setting-rep-uncommon":
+      state.settings.repValues.uncommon = value;
+      break;
+    case "setting-rep-rare":
+      state.settings.repValues.rare = value;
+      break;
+    case "setting-rep-unique":
+      state.settings.repValues.unique = value;
+      break;
+
+    // Multipliers
+    case "setting-first-discoverer":
+      state.settings.firstDiscovererMultiplier = value;
+      break;
+    case "setting-diminishing-rate":
+      state.settings.diminishingReturnsRate = value;
+      break;
+    case "setting-rep-floor":
+      state.settings.repFloor = value;
+      break;
+
+    // Ecology
+    case "setting-flora-regen":
+      state.settings.ecology.floraRegenRate = value;
+      break;
+    case "setting-fauna-regen":
+      state.settings.ecology.faunaRegenRate = value;
+      break;
+    case "setting-health-regen":
+      state.settings.ecology.healthRegenRate = value;
+      break;
+    case "setting-flora-loss":
+      state.settings.ecology.floraLossPerHarvest = value;
+      break;
+    case "setting-fauna-loss":
+      state.settings.ecology.faunaLossPerHarvest = value;
+      break;
+    case "setting-health-loss":
+      state.settings.ecology.healthLossPerHarvest = value;
+      break;
+    case "setting-critical-threshold":
+      state.settings.ecology.criticalThreshold = value;
+      break;
+    case "setting-stressed-threshold":
+      state.settings.ecology.stressedThreshold = value;
+      break;
+    case "setting-frequent-warning":
+      state.settings.ecology.frequentHarvestWarning = value;
+      break;
+
+    // Mystery Budget - Sparse
+    case "setting-sparse-landmarks-min":
+      state.settings.mysteryBudget.sparse.landmarks[0] = value;
+      break;
+    case "setting-sparse-landmarks-max":
+      state.settings.mysteryBudget.sparse.landmarks[1] = value;
+      break;
+    case "setting-sparse-micro-min":
+      state.settings.mysteryBudget.sparse.microPoints[0] = value;
+      break;
+    case "setting-sparse-micro-max":
+      state.settings.mysteryBudget.sparse.microPoints[1] = value;
+      break;
+    case "setting-sparse-secrets-min":
+      state.settings.mysteryBudget.sparse.secrets[0] = value;
+      break;
+    case "setting-sparse-secrets-max":
+      state.settings.mysteryBudget.sparse.secrets[1] = value;
+      break;
+
+    // Mystery Budget - Normal
+    case "setting-normal-landmarks-min":
+      state.settings.mysteryBudget.normal.landmarks[0] = value;
+      break;
+    case "setting-normal-landmarks-max":
+      state.settings.mysteryBudget.normal.landmarks[1] = value;
+      break;
+    case "setting-normal-micro-min":
+      state.settings.mysteryBudget.normal.microPoints[0] = value;
+      break;
+    case "setting-normal-micro-max":
+      state.settings.mysteryBudget.normal.microPoints[1] = value;
+      break;
+    case "setting-normal-secrets-min":
+      state.settings.mysteryBudget.normal.secrets[0] = value;
+      break;
+    case "setting-normal-secrets-max":
+      state.settings.mysteryBudget.normal.secrets[1] = value;
+      break;
+
+    // Mystery Budget - Dense
+    case "setting-dense-landmarks-min":
+      state.settings.mysteryBudget.dense.landmarks[0] = value;
+      break;
+    case "setting-dense-landmarks-max":
+      state.settings.mysteryBudget.dense.landmarks[1] = value;
+      break;
+    case "setting-dense-micro-min":
+      state.settings.mysteryBudget.dense.microPoints[0] = value;
+      break;
+    case "setting-dense-micro-max":
+      state.settings.mysteryBudget.dense.microPoints[1] = value;
+      break;
+    case "setting-dense-secrets-min":
+      state.settings.mysteryBudget.dense.secrets[0] = value;
+      break;
+    case "setting-dense-secrets-max":
+      state.settings.mysteryBudget.dense.secrets[1] = value;
+      break;
+
+    // Mutation
+    case "setting-mutation-min":
+      state.settings.mutation.minBoost = value;
+      break;
+    case "setting-mutation-max":
+      state.settings.mutation.maxBoost = value;
+      break;
+    case "setting-multi-mutation":
+      state.settings.mutation.allowMultiple = value;
+      break;
+
+    // Loop Targets
+    case "setting-micro-loop-min":
+      state.settings.loopTargets.microMin = value;
+      break;
+    case "setting-micro-loop-max":
+      state.settings.loopTargets.microMax = value;
+      break;
+    case "setting-macro-loop-min":
+      state.settings.loopTargets.macroMin = value;
+      break;
+    case "setting-macro-loop-max":
+      state.settings.loopTargets.macroMax = value;
+      break;
+
+    // Metrics Targets
+    case "setting-curiosity-target":
+      state.settings.metricsTargets.curiosity = value;
+      break;
+    case "setting-souvenir-time":
+      state.settings.metricsTargets.souvenirTime = value;
+      break;
+    case "setting-predictive-target":
+      state.settings.metricsTargets.predictive = value;
+      break;
+    case "setting-parity-tolerance":
+      state.settings.metricsTargets.parityTolerance = value;
+      break;
+  }
+
+  updateSettingDisplay(input);
+  saveSettings();
+  showSettingsStatus();
+}
+
+function updateSettingDisplay(input) {
+  const label = input.closest("label");
+  if (!label) return;
+
+  const valueSpan = label.querySelector(".setting-value");
+  if (!valueSpan) return;
+
+  if (input.type === "checkbox") {
+    valueSpan.textContent = input.checked ? "Enabled" : "Disabled";
+  } else {
+    const value = parseFloat(input.value);
+    const id = input.id;
+
+    // Format based on type
+    if (
+      id.includes("droprate") ||
+      id.includes("regen") ||
+      id.includes("loss") ||
+      id.includes("threshold") ||
+      id.includes("target") ||
+      id.includes("tolerance") ||
+      id.includes("mutation")
+    ) {
+      valueSpan.textContent = `${value}%`;
+    } else if (id.includes("multiplier")) {
+      valueSpan.textContent = `${value}x`;
+    } else if (id.includes("loop")) {
+      valueSpan.textContent = `${value} min`;
+    } else {
+      valueSpan.textContent = value.toString();
+    }
+  }
+}
+
+function saveSettings() {
+  localStorage.setItem("explorationSettings", JSON.stringify(state.settings));
+}
+
+function showSettingsStatus() {
+  const status = document.getElementById("settingsStatus");
+  if (status) {
+    status.style.display = "block";
+    setTimeout(() => {
+      status.style.display = "none";
+    }, 3000);
+  }
+}
+
+function exportSettings() {
+  const blob = new Blob([JSON.stringify(state.settings, null, 2)], {
+    type: "application/json",
+  });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `exploration-settings-${Date.now()}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function importSettings() {
+  const input = document.createElement("input");
+  input.type = "file";
+  input.accept = "application/json";
+  input.onchange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const settings = JSON.parse(event.target.result);
+        state.settings = settings;
+        updateSettingsUI();
+        saveSettings();
+        showSettingsStatus();
+        alert("Settings imported successfully!");
+      } catch (err) {
+        alert("Failed to import settings: Invalid JSON file");
+        console.error(err);
+      }
+    };
+    reader.readAsText(file);
+  };
+  input.click();
+}
+
+function resetSettings() {
+  if (!confirm("Reset all settings to default values?")) return;
+
+  state.settings = {
+    statPools: {
+      common: 300,
+      uncommon: 450,
+      rare: 600,
+      epic: 800,
+      legendary: 1000,
+    },
+    dropRates: {
+      common: 60,
+      uncommon: 25,
+      rare: 10,
+      unique: 5,
+    },
+    repValues: {
+      common: 20,
+      uncommon: 50,
+      rare: 100,
+      unique: 250,
+    },
+    firstDiscovererMultiplier: 2,
+    diminishingReturnsRate: 5,
+    repFloor: 10,
+    ecology: {
+      floraRegenRate: 2,
+      faunaRegenRate: 1.5,
+      healthRegenRate: 1,
+      floraLossPerHarvest: 8,
+      faunaLossPerHarvest: 5,
+      healthLossPerHarvest: 3,
+      criticalThreshold: 30,
+      stressedThreshold: 60,
+      frequentHarvestWarning: 5,
+    },
+    mysteryBudget: {
+      sparse: { landmarks: [1, 2], microPoints: [8, 12], secrets: [2, 3] },
+      normal: { landmarks: [2, 3], microPoints: [15, 25], secrets: [3, 5] },
+      dense: { landmarks: [3, 5], microPoints: [30, 40], secrets: [5, 8] },
+    },
+    mutation: {
+      minBoost: 10,
+      maxBoost: 25,
+      allowMultiple: true,
+    },
+    loopTargets: {
+      microMin: 5,
+      microMax: 8,
+      macroMin: 60,
+      macroMax: 120,
+    },
+    metricsTargets: {
+      curiosity: 25,
+      souvenirTime: 15,
+      predictive: 60,
+      parityTolerance: 12,
+    },
+  };
+
+  updateSettingsUI();
+  saveSettings();
+  showSettingsStatus();
+}
+

@@ -27,6 +27,7 @@
             <button class="tab-btn" data-tab="mystery">Mystery Budget</button>
             <button class="tab-btn" data-tab="loop">Loop Timer</button>
             <button class="tab-btn" data-tab="metrics">Metrics Dashboard</button>
+            <button class="tab-btn" data-tab="settings">⚙️ Settings</button>
         </nav>
 
         <!-- Exploration Verbs Tab -->
@@ -595,6 +596,357 @@
             <div class="export-controls">
                 <button id="exportMetrics" class="action-btn">Export Data (JSON)</button>
                 <button id="resetMetrics" class="action-btn secondary">Reset All Metrics</button>
+            </div>
+        </div>
+
+        <!-- Settings Tab -->
+        <div id="settings" class="tab-content">
+            <h2>⚙️ Configuration & Fine-Tuning</h2>
+            
+            <div class="developer-notes">
+                <h3>📚 Developer Notes</h3>
+                <p>
+                    <strong>Purpose:</strong> Centralized configuration for all game balance parameters. 
+                    Adjust values here to test different balance scenarios without editing code.
+                </p>
+                <p class="design-goal">
+                    <strong>Tip:</strong> Changes take effect immediately. Use "Export Settings" to save configurations, 
+                    and "Import Settings" to restore them. Click "Reset to Defaults" to restore original values.
+                </p>
+            </div>
+
+            <div class="settings-actions" style="margin-bottom: 30px; display: flex; gap: 10px; justify-content: flex-end;">
+                <button id="exportSettings" class="action-btn">📥 Export Settings</button>
+                <button id="importSettings" class="action-btn">📤 Import Settings</button>
+                <button id="resetSettings" class="action-btn secondary">🔄 Reset to Defaults</button>
+            </div>
+
+            <div class="settings-grid">
+                <!-- Rarity Settings -->
+                <div class="settings-section">
+                    <h3>🎲 Rarity System</h3>
+                    
+                    <div class="setting-group">
+                        <h4>Stat Pool Budgets</h4>
+                        <label>
+                            Common Stat Pool:
+                            <input type="number" id="setting-statpool-common" min="100" max="1000" step="50" value="300">
+                            <span class="setting-value">300</span>
+                        </label>
+                        <label>
+                            Uncommon Stat Pool:
+                            <input type="number" id="setting-statpool-uncommon" min="100" max="1000" step="50" value="450">
+                            <span class="setting-value">450</span>
+                        </label>
+                        <label>
+                            Rare Stat Pool:
+                            <input type="number" id="setting-statpool-rare" min="100" max="1500" step="50" value="600">
+                            <span class="setting-value">600</span>
+                        </label>
+                        <label>
+                            Epic Stat Pool:
+                            <input type="number" id="setting-statpool-epic" min="100" max="2000" step="50" value="800">
+                            <span class="setting-value">800</span>
+                        </label>
+                        <label>
+                            Legendary Stat Pool:
+                            <input type="number" id="setting-statpool-legendary" min="100" max="3000" step="50" value="1000">
+                            <span class="setting-value">1000</span>
+                        </label>
+                    </div>
+
+                    <div class="setting-group">
+                        <h4>Drop Rates (%)</h4>
+                        <label>
+                            Common Drop Rate:
+                            <input type="number" id="setting-droprate-common" min="0" max="100" step="1" value="60">
+                            <span class="setting-value">60%</span>
+                        </label>
+                        <label>
+                            Uncommon Drop Rate:
+                            <input type="number" id="setting-droprate-uncommon" min="0" max="100" step="1" value="25">
+                            <span class="setting-value">25%</span>
+                        </label>
+                        <label>
+                            Rare Drop Rate:
+                            <input type="number" id="setting-droprate-rare" min="0" max="100" step="1" value="10">
+                            <span class="setting-value">10%</span>
+                        </label>
+                        <label>
+                            Unique Drop Rate:
+                            <input type="number" id="setting-droprate-unique" min="0" max="100" step="1" value="5">
+                            <span class="setting-value">5%</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Reward System Settings -->
+                <div class="settings-section">
+                    <h3>🎁 Reward System</h3>
+                    
+                    <div class="setting-group">
+                        <h4>Base REP Values</h4>
+                        <label>
+                            Common Base REP:
+                            <input type="number" id="setting-rep-common" min="1" max="100" step="5" value="20">
+                            <span class="setting-value">20</span>
+                        </label>
+                        <label>
+                            Uncommon Base REP:
+                            <input type="number" id="setting-rep-uncommon" min="1" max="200" step="5" value="50">
+                            <span class="setting-value">50</span>
+                        </label>
+                        <label>
+                            Rare Base REP:
+                            <input type="number" id="setting-rep-rare" min="1" max="300" step="10" value="100">
+                            <span class="setting-value">100</span>
+                        </label>
+                        <label>
+                            Unique Base REP:
+                            <input type="number" id="setting-rep-unique" min="1" max="500" step="10" value="250">
+                            <span class="setting-value">250</span>
+                        </label>
+                    </div>
+
+                    <div class="setting-group">
+                        <h4>Multipliers & Diminishing Returns</h4>
+                        <label>
+                            First Discoverer Multiplier:
+                            <input type="number" id="setting-first-discoverer" min="1" max="5" step="0.1" value="2">
+                            <span class="setting-value">2.0x</span>
+                        </label>
+                        <label>
+                            Diminishing Returns Rate (%):
+                            <input type="number" id="setting-diminishing-rate" min="1" max="20" step="1" value="5">
+                            <span class="setting-value">5%</span>
+                        </label>
+                        <label>
+                            Minimum REP Floor (%):
+                            <input type="number" id="setting-rep-floor" min="1" max="50" step="1" value="10">
+                            <span class="setting-value">10%</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Ecology Settings -->
+                <div class="settings-section">
+                    <h3>🌍 Ecology System</h3>
+                    
+                    <div class="setting-group">
+                        <h4>Recovery Rates</h4>
+                        <label>
+                            Flora Regeneration Rate (per hour):
+                            <input type="number" id="setting-flora-regen" min="0.1" max="10" step="0.1" value="2">
+                            <span class="setting-value">2.0%</span>
+                        </label>
+                        <label>
+                            Fauna Regeneration Rate (per hour):
+                            <input type="number" id="setting-fauna-regen" min="0.1" max="10" step="0.1" value="1.5">
+                            <span class="setting-value">1.5%</span>
+                        </label>
+                        <label>
+                            World Health Recovery (per hour):
+                            <input type="number" id="setting-health-regen" min="0.1" max="5" step="0.1" value="1">
+                            <span class="setting-value">1.0%</span>
+                        </label>
+                    </div>
+
+                    <div class="setting-group">
+                        <h4>Harvest Impact</h4>
+                        <label>
+                            Flora Density Loss (per harvest):
+                            <input type="number" id="setting-flora-loss" min="1" max="20" step="1" value="8">
+                            <span class="setting-value">8%</span>
+                        </label>
+                        <label>
+                            Fauna Activity Loss (per harvest):
+                            <input type="number" id="setting-fauna-loss" min="1" max="20" step="1" value="5">
+                            <span class="setting-value">5%</span>
+                        </label>
+                        <label>
+                            World Health Loss (per harvest):
+                            <input type="number" id="setting-health-loss" min="1" max="15" step="1" value="3">
+                            <span class="setting-value">3%</span>
+                        </label>
+                    </div>
+
+                    <div class="setting-group">
+                        <h4>Warning Thresholds</h4>
+                        <label>
+                            Critical Health Threshold (%):
+                            <input type="number" id="setting-critical-threshold" min="10" max="50" step="5" value="30">
+                            <span class="setting-value">30%</span>
+                        </label>
+                        <label>
+                            Stressed Health Threshold (%):
+                            <input type="number" id="setting-stressed-threshold" min="30" max="80" step="5" value="60">
+                            <span class="setting-value">60%</span>
+                        </label>
+                        <label>
+                            Frequent Harvest Warning (count):
+                            <input type="number" id="setting-frequent-warning" min="3" max="15" step="1" value="5">
+                            <span class="setting-value">5</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Mystery Budget Settings -->
+                <div class="settings-section">
+                    <h3>🗺️ Mystery Budget</h3>
+                    
+                    <div class="setting-group">
+                        <h4>Discovery Distribution (Sparse)</h4>
+                        <label>
+                            Landmarks (Min - Max):
+                            <input type="number" id="setting-sparse-landmarks-min" min="0" max="10" step="1" value="1">
+                            -
+                            <input type="number" id="setting-sparse-landmarks-max" min="1" max="10" step="1" value="2">
+                        </label>
+                        <label>
+                            Micro Points (Min - Max):
+                            <input type="number" id="setting-sparse-micro-min" min="5" max="50" step="1" value="8">
+                            -
+                            <input type="number" id="setting-sparse-micro-max" min="5" max="50" step="1" value="12">
+                        </label>
+                        <label>
+                            Occluded Secrets (Min - Max):
+                            <input type="number" id="setting-sparse-secrets-min" min="1" max="10" step="1" value="2">
+                            -
+                            <input type="number" id="setting-sparse-secrets-max" min="1" max="10" step="1" value="3">
+                        </label>
+                    </div>
+
+                    <div class="setting-group">
+                        <h4>Discovery Distribution (Normal)</h4>
+                        <label>
+                            Landmarks (Min - Max):
+                            <input type="number" id="setting-normal-landmarks-min" min="0" max="10" step="1" value="2">
+                            -
+                            <input type="number" id="setting-normal-landmarks-max" min="1" max="10" step="1" value="3">
+                        </label>
+                        <label>
+                            Micro Points (Min - Max):
+                            <input type="number" id="setting-normal-micro-min" min="5" max="50" step="1" value="15">
+                            -
+                            <input type="number" id="setting-normal-micro-max" min="5" max="50" step="1" value="25">
+                        </label>
+                        <label>
+                            Occluded Secrets (Min - Max):
+                            <input type="number" id="setting-normal-secrets-min" min="1" max="10" step="1" value="3">
+                            -
+                            <input type="number" id="setting-normal-secrets-max" min="1" max="10" step="1" value="5">
+                        </label>
+                    </div>
+
+                    <div class="setting-group">
+                        <h4>Discovery Distribution (Dense)</h4>
+                        <label>
+                            Landmarks (Min - Max):
+                            <input type="number" id="setting-dense-landmarks-min" min="0" max="10" step="1" value="3">
+                            -
+                            <input type="number" id="setting-dense-landmarks-max" min="1" max="10" step="1" value="5">
+                        </label>
+                        <label>
+                            Micro Points (Min - Max):
+                            <input type="number" id="setting-dense-micro-min" min="5" max="80" step="1" value="30">
+                            -
+                            <input type="number" id="setting-dense-micro-max" min="5" max="80" step="1" value="40">
+                        </label>
+                        <label>
+                            Occluded Secrets (Min - Max):
+                            <input type="number" id="setting-dense-secrets-min" min="1" max="15" step="1" value="5">
+                            -
+                            <input type="number" id="setting-dense-secrets-max" min="1" max="15" step="1" value="8">
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Evolution Settings -->
+                <div class="settings-section">
+                    <h3>🧬 Evolution & Mutation</h3>
+                    
+                    <div class="setting-group">
+                        <h4>Mutation Parameters</h4>
+                        <label>
+                            Minimum Mutation Boost (%):
+                            <input type="number" id="setting-mutation-min" min="1" max="50" step="1" value="10">
+                            <span class="setting-value">10%</span>
+                        </label>
+                        <label>
+                            Maximum Mutation Boost (%):
+                            <input type="number" id="setting-mutation-max" min="10" max="100" step="5" value="25">
+                            <span class="setting-value">25%</span>
+                        </label>
+                        <label>
+                            Allow Multiple Mutations:
+                            <input type="checkbox" id="setting-multi-mutation" checked>
+                            <span class="setting-value">Enabled</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Loop Timer Settings -->
+                <div class="settings-section">
+                    <h3>⏱️ Loop Timing</h3>
+                    
+                    <div class="setting-group">
+                        <h4>Target Times (minutes)</h4>
+                        <label>
+                            Micro Loop Min Target:
+                            <input type="number" id="setting-micro-loop-min" min="1" max="20" step="0.5" value="5">
+                            <span class="setting-value">5 min</span>
+                        </label>
+                        <label>
+                            Micro Loop Max Target:
+                            <input type="number" id="setting-micro-loop-max" min="1" max="20" step="0.5" value="8">
+                            <span class="setting-value">8 min</span>
+                        </label>
+                        <label>
+                            Macro Loop Min Target:
+                            <input type="number" id="setting-macro-loop-min" min="30" max="180" step="10" value="60">
+                            <span class="setting-value">60 min</span>
+                        </label>
+                        <label>
+                            Macro Loop Max Target:
+                            <input type="number" id="setting-macro-loop-max" min="30" max="180" step="10" value="120">
+                            <span class="setting-value">120 min</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Metrics Targets -->
+                <div class="settings-section">
+                    <h3>📊 Metrics Targets</h3>
+                    
+                    <div class="setting-group">
+                        <h4>Target KPIs</h4>
+                        <label>
+                            Curiosity Conversion Target (%):
+                            <input type="number" id="setting-curiosity-target" min="0" max="100" step="5" value="25">
+                            <span class="setting-value">25%</span>
+                        </label>
+                        <label>
+                            Souvenir Density (per minutes):
+                            <input type="number" id="setting-souvenir-time" min="5" max="30" step="1" value="15">
+                            <span class="setting-value">15 min</span>
+                        </label>
+                        <label>
+                            Predictive Success Target (%):
+                            <input type="number" id="setting-predictive-target" min="0" max="100" step="5" value="60">
+                            <span class="setting-value">60%</span>
+                        </label>
+                        <label>
+                            Solo/Co-op Parity Tolerance (±%):
+                            <input type="number" id="setting-parity-tolerance" min="5" max="25" step="1" value="12">
+                            <span class="setting-value">±12%</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="settings-status" id="settingsStatus" style="margin-top: 30px; padding: 15px; background: rgba(46, 204, 113, 0.1); border-left: 3px solid #2ecc71; border-radius: 5px; display: none;">
+                <strong>✓ Settings Updated</strong>
+                <p style="margin: 5px 0 0 0; font-size: 0.9em;">All changes have been applied and will affect future generations.</p>
             </div>
         </div>
     </div>
