@@ -1738,151 +1738,425 @@ function updateEcologyStats() {
 }
 
 function addEcologyLog(message) {
-    state.ecology.log.unshift(`[${new Date().toLocaleTimeString()}] ${message}`);
-    state.ecology.log = state.ecology.log.slice(0, 10);
-    
-    const logContainer = document.getElementById('ecologyLog');
-    logContainer.innerHTML = state.ecology.log.map(log => `<div>${log}</div>`).join('');
+  state.ecology.log.unshift(`[${new Date().toLocaleTimeString()}] ${message}`);
+  state.ecology.log = state.ecology.log.slice(0, 10);
+
+  const logContainer = document.getElementById("ecologyLog");
+  logContainer.innerHTML = state.ecology.log
+    .map((log) => `<div>${log}</div>`)
+    .join("");
 }
 
 // Mystery Budget
+let currentMysteryBudget = null;
+
 function initMysteryBudget() {
-    const generateBtn = document.getElementById('generateMystery');
-    const biomeSelect = document.getElementById('biomeType');
-    const canvas = document.getElementById('mysteryCanvas');
-    const statsDiv = document.getElementById('mysteryStats');
-    
-    generateBtn.addEventListener('click', () => {
-        const biome = biomeSelect.value;
-        const budget = generateMysteryBudget(biome);
-        drawMysteryMap(canvas, budget);
-        displayMysteryStats(statsDiv, budget);
+  const generateBtn = document.getElementById("generateMystery");
+  const revealBtn = document.getElementById("revealSecrets");
+  const exportBtn = document.getElementById("exportMap");
+  const biomeSelect = document.getElementById("biomeType");
+  const densitySelect = document.getElementById("densityLevel");
+  const canvas = document.getElementById("mysteryCanvas");
+  const statsDiv = document.getElementById("mysteryStats");
+
+  generateBtn.addEventListener("click", () => {
+    const biome = biomeSelect.value;
+    const density = densitySelect.value;
+    currentMysteryBudget = generateMysteryBudget(biome, density);
+    drawMysteryMap(canvas, currentMysteryBudget);
+    displayMysteryStats(statsDiv, currentMysteryBudget);
+  });
+
+  revealBtn.addEventListener("click", () => {
+    if (currentMysteryBudget) {
+      currentMysteryBudget.occludedSecrets.forEach(
+        (secret) => (secret.revealed = true)
+      );
+      drawMysteryMap(canvas, currentMysteryBudget);
+      displayMysteryStats(statsDiv, currentMysteryBudget);
+    }
+  });
+
+  exportBtn.addEventListener("click", () => {
+    if (currentMysteryBudget) {
+      const dataStr = JSON.stringify(currentMysteryBudget, null, 2);
+      const dataBlob = new Blob([dataStr], { type: "application/json" });
+      const url = URL.createObjectURL(dataBlob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `mystery_budget_${
+        currentMysteryBudget.biome
+      }_${Date.now()}.json`;
+      link.click();
+      URL.revokeObjectURL(url);
+    }
+  });
+
+  // Make secrets clickable to reveal
+  canvas.addEventListener("click", (e) => {
+    if (!currentMysteryBudget) return;
+
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    currentMysteryBudget.occludedSecrets.forEach((secret) => {
+      const dist = Math.sqrt((x - secret.x) ** 2 + (y - secret.y) ** 2);
+      if (dist < 12 && !secret.revealed) {
+        secret.revealed = true;
+        drawMysteryMap(canvas, currentMysteryBudget);
+        displayMysteryStats(statsDiv, currentMysteryBudget);
+      }
     });
+  });
 }
 
-function generateMysteryBudget(biome) {
-    const budget = {
-        biome,
-        landmarks: [],
-        microPoints: [],
-        occludedSecrets: []
-    };
-    
-    // Generate 2-3 landmarks
-    for (let i = 0; i < 2 + Math.floor(Math.random() * 2); i++) {
-        budget.landmarks.push({
-            x: Math.random() * 600,
-            y: Math.random() * 400,
-            type: ['Peak', 'Crater', 'Tower', 'Monument'][Math.floor(Math.random() * 4)]
-        });
-    }
-    
-    // Generate 15-25 micro points
-    for (let i = 0; i < 15 + Math.floor(Math.random() * 11); i++) {
-        budget.microPoints.push({
-            x: Math.random() * 600,
-            y: Math.random() * 400,
-            type: ['Glow', 'Nest', 'Ruin', 'Crystal'][Math.floor(Math.random() * 4)]
-        });
-    }
-    
-    // Generate 3-5 occluded secrets
-    for (let i = 0; i < 3 + Math.floor(Math.random() * 3); i++) {
-        budget.occludedSecrets.push({
-            x: Math.random() * 600,
-            y: Math.random() * 400,
-            revealed: false
-        });
-    }
-    
-    return budget;
+function generateMysteryBudget(biome, density = "normal") {
+  const densityMultipliers = {
+    sparse: 0.6,
+    normal: 1.0,
+    dense: 1.5,
+  };
+  const mult = densityMultipliers[density];
+
+  const budget = {
+    biome,
+    density,
+    landmarks: [],
+    microPoints: [],
+    occludedSecrets: [],
+    totalArea: 600 * 400,
+    generatedAt: new Date().toISOString(),
+  };
+
+  // Biome-specific landmark types
+  const biomeData = {
+    volcanic: {
+      landmarks: ["Lava Peak", "Caldera", "Geothermal Vent", "Obsidian Tower"],
+      microPoints: [
+        "Sulfur Crystal",
+        "Thermal Glow",
+        "Magma Pool",
+        "Ash Formation",
+      ],
+      secrets: ["Ancient Lava Tube", "Cooling Chamber", "Mineral Vein"],
+    },
+    arctic: {
+      landmarks: ["Ice Spire", "Glacier", "Frozen Waterfall", "Snow Monument"],
+      microPoints: [
+        "Ice Crystal",
+        "Frozen Nest",
+        "Aurora Glow",
+        "Snow Formation",
+      ],
+      secrets: ["Ice Cave", "Buried Structure", "Frozen Artifact"],
+    },
+    forest: {
+      landmarks: [
+        "Ancient Tree",
+        "Canopy Tower",
+        "Stone Circle",
+        "Overgrown Ruins",
+      ],
+      microPoints: [
+        "Bioluminescent Fungus",
+        "Nest",
+        "Rare Flower",
+        "Crystal Formation",
+      ],
+      secrets: ["Hidden Grove", "Underground Root System", "Treehouse Ruins"],
+    },
+    desert: {
+      landmarks: ["Rock Formation", "Sand Dune Peak", "Stone Arch", "Oasis"],
+      microPoints: ["Desert Glass", "Fossil", "Cactus Bloom", "Wind Pattern"],
+      secrets: ["Buried Temple", "Underground Spring", "Ancient Caravan"],
+    },
+    ocean: {
+      landmarks: [
+        "Coral Tower",
+        "Underwater Volcano",
+        "Trench",
+        "Reef Monument",
+      ],
+      microPoints: [
+        "Bioluminescent Algae",
+        "Shell Formation",
+        "Thermal Vent",
+        "Rare Coral",
+      ],
+      secrets: ["Sunken Ship", "Cave System", "Abyssal Creature"],
+    },
+    cave: {
+      landmarks: [
+        "Stalactite Formation",
+        "Underground Lake",
+        "Crystal Chamber",
+        "Chasm",
+      ],
+      microPoints: [
+        "Glowing Mineral",
+        "Fossil",
+        "Mushroom Colony",
+        "Echo Chamber",
+      ],
+      secrets: ["Hidden Passage", "Buried Treasure", "Ancient Drawing"],
+    },
+    asteroid: {
+      landmarks: [
+        "Core Fragment",
+        "Impact Crater",
+        "Metal Deposit",
+        "Gravity Anomaly",
+      ],
+      microPoints: [
+        "Rare Element",
+        "Space Crystal",
+        "Metallic Formation",
+        "Void Pocket",
+      ],
+      secrets: ["Alien Structure", "Ancient Tech", "Unstable Core"],
+    },
+  };
+
+  const data = biomeData[biome] || biomeData.volcanic;
+
+  // Generate 2-4 landmarks (scaled by density)
+  const landmarkCount = Math.floor((2 + Math.random() * 3) * mult);
+  for (let i = 0; i < landmarkCount; i++) {
+    budget.landmarks.push({
+      x: 50 + Math.random() * 500,
+      y: 50 + Math.random() * 300,
+      type: data.landmarks[Math.floor(Math.random() * data.landmarks.length)],
+      visibility: "high",
+    });
+  }
+
+  // Generate 15-30 micro points (scaled by density)
+  const microCount = Math.floor((15 + Math.random() * 16) * mult);
+  for (let i = 0; i < microCount; i++) {
+    budget.microPoints.push({
+      x: Math.random() * 600,
+      y: Math.random() * 400,
+      type: data.microPoints[
+        Math.floor(Math.random() * data.microPoints.length)
+      ],
+      visibility: "medium",
+    });
+  }
+
+  // Generate 3-6 occluded secrets (scaled by density)
+  const secretCount = Math.floor((3 + Math.random() * 4) * mult);
+  for (let i = 0; i < secretCount; i++) {
+    budget.occludedSecrets.push({
+      x: Math.random() * 600,
+      y: Math.random() * 400,
+      type: data.secrets[Math.floor(Math.random() * data.secrets.length)],
+      revealed: false,
+      visibility: "hidden",
+    });
+  }
+
+  return budget;
 }
 
 function drawMysteryMap(canvas, budget) {
-    const ctx = canvas.getContext('2d');
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
-    // Background
-    const biomeColors = {
-        volcanic: ['#e74c3c', '#c0392b'],
-        arctic: ['#ecf0f1', '#bdc3c7'],
-        forest: ['#27ae60', '#229954'],
-        desert: ['#f39c12', '#d68910'],
-        ocean: ['#3498db', '#2980b9']
-    };
-    
-    const colors = biomeColors[budget.biome];
-    const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
-    gradient.addColorStop(0, colors[0]);
-    gradient.addColorStop(1, colors[1]);
-    ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    
-    // Draw landmarks (large)
-    budget.landmarks.forEach(landmark => {
-        ctx.fillStyle = '#f39c12';
-        ctx.beginPath();
-        ctx.arc(landmark.x, landmark.y, 12, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.strokeStyle = '#fff';
-        ctx.lineWidth = 2;
-        ctx.stroke();
-        
-        ctx.fillStyle = '#fff';
-        ctx.font = '10px Arial';
-        ctx.fillText(landmark.type, landmark.x - 15, landmark.y + 25);
-    });
-    
-    // Draw micro points (small)
-    budget.microPoints.forEach(point => {
-        ctx.fillStyle = '#2ecc71';
-        ctx.beginPath();
-        ctx.arc(point.x, point.y, 4, 0, Math.PI * 2);
-        ctx.fill();
-    });
-    
-    // Draw occluded secrets (hidden until revealed)
-    budget.occludedSecrets.forEach(secret => {
-        ctx.fillStyle = secret.revealed ? '#9b59b6' : 'rgba(155, 89, 182, 0.3)';
-        ctx.beginPath();
-        ctx.arc(secret.x, secret.y, 8, 0, Math.PI * 2);
-        ctx.fill();
-        
-        if (!secret.revealed) {
-            ctx.strokeStyle = '#9b59b6';
-            ctx.setLineDash([2, 2]);
-            ctx.stroke();
-            ctx.setLineDash([]);
-        }
-    });
-    
-    // Legend
-    ctx.fillStyle = '#fff';
-    ctx.font = 'bold 12px Arial';
-    ctx.fillText('🟡 Landmarks', 10, 20);
-    ctx.fillText('🟢 Micro Points', 10, 40);
-    ctx.fillText('🟣 Occluded Secrets', 10, 60);
+  const ctx = canvas.getContext("2d");
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // Biome-specific colors
+  const biomeColors = {
+    volcanic: ["#ff4400", "#ff6622", "#ff8844"],
+    arctic: ["#88ccff", "#aaddff", "#cceeee"],
+    forest: ["#228844", "#44aa66", "#66cc88"],
+    desert: ["#ffcc66", "#ffdd88", "#ffeeaa"],
+    ocean: ["#2266aa", "#4488cc", "#66aaee"],
+    cave: ["#554466", "#776688", "#9988aa"],
+    asteroid: ["#666666", "#888888", "#aaaaaa"],
+  };
+
+  const colors = biomeColors[budget.biome] || biomeColors.volcanic;
+
+  // Draw gradient background
+  const gradient = ctx.createLinearGradient(0, 0, 600, 400);
+  gradient.addColorStop(0, colors[0]);
+  gradient.addColorStop(0.5, colors[1]);
+  gradient.addColorStop(1, colors[2]);
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, 600, 400);
+
+  // Draw grid
+  ctx.strokeStyle = "rgba(255, 255, 255, 0.1)";
+  ctx.lineWidth = 1;
+  for (let i = 0; i < 600; i += 50) {
+    ctx.beginPath();
+    ctx.moveTo(i, 0);
+    ctx.lineTo(i, 400);
+    ctx.stroke();
+  }
+  for (let i = 0; i < 400; i += 50) {
+    ctx.beginPath();
+    ctx.moveTo(0, i);
+    ctx.lineTo(600, i);
+    ctx.stroke();
+  }
+
+  // Draw micro points (smallest, drawn first)
+  budget.microPoints.forEach((point) => {
+    ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
+    ctx.beginPath();
+    ctx.arc(point.x, point.y, 3, 0, Math.PI * 2);
+    ctx.fill();
+  });
+
+  // Draw landmarks (larger, more visible)
+  budget.landmarks.forEach((landmark) => {
+    ctx.fillStyle = "#ffff00";
+    ctx.strokeStyle = "#ffffff";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(landmark.x, landmark.y, 8, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+
+    // Draw name label
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "10px monospace";
+    ctx.fillText(landmark.type, landmark.x + 12, landmark.y + 4);
+  });
+
+  // Draw occluded secrets (only if revealed)
+  const revealedCount = budget.occludedSecrets.filter((s) => s.revealed).length;
+  budget.occludedSecrets.forEach((secret) => {
+    if (secret.revealed) {
+      ctx.fillStyle = "#ff00ff";
+      ctx.strokeStyle = "#ffffff";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(secret.x, secret.y, 6, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+
+      // Draw type label
+      ctx.fillStyle = "#ff00ff";
+      ctx.font = "10px monospace";
+      ctx.fillText(secret.type, secret.x + 10, secret.y + 4);
+    } else {
+      // Draw subtle hint (very faint)
+      ctx.fillStyle = "rgba(255, 255, 255, 0.1)";
+      ctx.beginPath();
+      ctx.arc(secret.x, secret.y, 4, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  });
+
+  // Draw legend
+  const legendX = 10;
+  const legendY = 10;
+  ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
+  ctx.fillRect(legendX, legendY, 180, revealedCount > 0 ? 85 : 65);
+
+  ctx.fillStyle = "#ffff00";
+  ctx.beginPath();
+  ctx.arc(legendX + 10, legendY + 15, 8, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = "#ffffff";
+  ctx.font = "12px monospace";
+  ctx.fillText(
+    `Landmarks (${budget.landmarks.length})`,
+    legendX + 25,
+    legendY + 20
+  );
+
+  ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
+  ctx.beginPath();
+  ctx.arc(legendX + 10, legendY + 35, 3, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = "#ffffff";
+  ctx.fillText(
+    `Micro Points (${budget.microPoints.length})`,
+    legendX + 25,
+    legendY + 40
+  );
+
+  ctx.fillStyle = "rgba(255, 255, 255, 0.1)";
+  ctx.beginPath();
+  ctx.arc(legendX + 10, legendY + 55, 4, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = "#ffffff";
+  ctx.fillText(
+    `Hidden Secrets (${budget.occludedSecrets.length - revealedCount})`,
+    legendX + 25,
+    legendY + 60
+  );
+
+  if (revealedCount > 0) {
+    ctx.fillStyle = "#ff00ff";
+    ctx.beginPath();
+    ctx.arc(legendX + 10, legendY + 75, 6, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#ff00ff";
+    ctx.fillText(`Revealed (${revealedCount})`, legendX + 25, legendY + 80);
+  }
 }
 
 function displayMysteryStats(container, budget) {
-    container.innerHTML = `
+  const revealedCount = budget.occludedSecrets.filter((s) => s.revealed).length;
+  const hiddenCount = budget.occludedSecrets.length - revealedCount;
+
+  container.innerHTML = `
         <div style="margin-bottom: 10px;">
-            <strong>Biome:</strong> ${budget.biome.toUpperCase()}
+            <strong>Biome:</strong> ${budget.biome.toUpperCase()} 
+            <span style="margin-left: 20px; opacity: 0.7;">(Density: ${
+              budget.density
+            })</span>
         </div>
         <div style="margin-bottom: 10px;">
             <strong>Landmarks:</strong> ${budget.landmarks.length}
-            <ul style="margin-left: 20px; margin-top: 5px;">
-                ${budget.landmarks.map(l => `<li>${l.type}</li>`).join('')}
+            <ul style="margin-left: 20px; margin-top: 5px; font-size: 0.9em;">
+                ${budget.landmarks.map((l) => `<li>${l.type}</li>`).join("")}
             </ul>
         </div>
         <div style="margin-bottom: 10px;">
             <strong>Micro Points:</strong> ${budget.microPoints.length}
+            <ul style="margin-left: 20px; margin-top: 5px; font-size: 0.9em; max-height: 100px; overflow-y: auto;">
+                ${budget.microPoints.map((p) => `<li>${p.type}</li>`).join("")}
+            </ul>
         </div>
         <div style="margin-bottom: 10px;">
-            <strong>Occluded Secrets:</strong> ${budget.occludedSecrets.length}
+            <strong>Occluded Secrets:</strong> ${
+              budget.occludedSecrets.length
+            } total
+            <div style="margin-left: 20px; margin-top: 5px; font-size: 0.9em;">
+                ${hiddenCount > 0 ? `🔒 Hidden: ${hiddenCount}` : ""}
+                ${revealedCount > 0 ? `<br>🔓 Revealed: ${revealedCount}` : ""}
+            </div>
+            ${
+              revealedCount > 0
+                ? `
+            <ul style="margin-left: 20px; margin-top: 5px; font-size: 0.9em; color: #ff00ff;">
+                ${budget.occludedSecrets
+                  .filter((s) => s.revealed)
+                  .map((s) => `<li>${s.type}</li>`)
+                  .join("")}
+            </ul>
+            `
+                : ""
+            }
         </div>
         <div style="margin-top: 15px; padding: 10px; background: rgba(0,0,0,0.3); border-radius: 5px;">
-            <strong>Mystery Quota:</strong> ${(budget.occludedSecrets.length / 10).toFixed(1)} surprises per 10 min travel
+            <strong>Mystery Quota:</strong> ${(
+              budget.occludedSecrets.length / 10
+            ).toFixed(1)} surprises per 10 min travel
+            <div style="font-size: 0.85em; margin-top: 5px; opacity: 0.8;">
+                Target: ~0.5 discoveries per 10 min (feel surprise while exploring)
+            </div>
+        </div>
+        <div style="margin-top: 10px; font-size: 0.85em; opacity: 0.7; font-style: italic;">
+            ${
+              hiddenCount > 0
+                ? "💡 Tip: Click on faint circles to reveal individual secrets, or use 'Reveal All Secrets' button"
+                : "✅ All secrets revealed!"
+            }
         </div>
     `;
 }

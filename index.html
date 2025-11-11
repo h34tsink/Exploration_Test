@@ -429,18 +429,53 @@
         <!-- Mystery Budget Tab -->
         <div id="mystery" class="tab-content">
             <h2>Mystery Budget Manager</h2>
+            
+            <div class="developer-notes">
+                <h3>📚 Developer Notes</h3>
+                <p>
+                    <strong>Purpose:</strong> Test procedural distribution of discoveries to maintain wonder and prevent predictable farming. 
+                    Creates balanced mix of obvious landmarks, hidden micro-discoveries, and rare occluded secrets.
+                </p>
+                <ul>
+                    <li><strong>Landmarks (2-3):</strong> Visible from distance, draw players to explore - peaks, craters, monuments</li>
+                    <li><strong>Micro Points (15-25):</strong> Small discoverable objects requiring close inspection - glows, nests, crystals</li>
+                    <li><strong>Occluded Secrets (3-5):</strong> Hidden until triggered by proximity, time, or conditions - rare surprises</li>
+                    <li><strong>Mystery Quota:</strong> Target ~0.5 unexpected discoveries per 10 minutes of travel</li>
+                </ul>
+                <p class="design-goal">
+                    <strong>Design Goal:</strong> Balance predictability vs. surprise. Landmarks guide exploration routes. 
+                    Micro points reward thorough searching. Occluded secrets prevent complete knowledge, maintaining mystery even for veterans.
+                </p>
+            </div>
+            
             <div class="mystery-controls">
-                <label>
-                    Biome Type:
-                    <select id="biomeType">
-                        <option value="volcanic">Volcanic</option>
-                        <option value="arctic">Arctic</option>
-                        <option value="forest">Forest</option>
-                        <option value="desert">Desert</option>
-                        <option value="ocean">Ocean</option>
-                    </select>
-                </label>
-                <button id="generateMystery" class="action-btn">Generate Mystery Budget</button>
+                <div style="display: flex; gap: 15px; align-items: flex-end; margin-bottom: 20px;">
+                    <label style="flex: 1;">
+                        Biome Type:
+                        <select id="biomeType">
+                            <option value="volcanic">Volcanic Planet</option>
+                            <option value="arctic">Arctic Planet</option>
+                            <option value="forest">Forest Planet</option>
+                            <option value="desert">Desert Planet</option>
+                            <option value="ocean">Ocean Planet</option>
+                            <option value="cave">Cave System</option>
+                            <option value="asteroid">Asteroid Field</option>
+                        </select>
+                    </label>
+                    <label style="flex: 1;">
+                        Map Density:
+                        <select id="densityLevel">
+                            <option value="sparse">Sparse (Exploration Focus)</option>
+                            <option value="normal" selected>Normal (Balanced)</option>
+                            <option value="dense">Dense (Discovery Rich)</option>
+                        </select>
+                    </label>
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <button id="generateMystery" class="action-btn">Generate Mystery Budget</button>
+                    <button id="revealSecrets" class="action-btn secondary">Reveal All Secrets</button>
+                    <button id="exportMap" class="action-btn secondary">Export Map Data</button>
+                </div>
             </div>
             <div class="mystery-display">
                 <div class="mystery-map">
