@@ -6,7 +6,7 @@ An interactive web application for testing and iterating on exploration game mec
 
 ### Running Locally
 
-**Option 1: Using the start script (Recommended)**
+#### Option 1: Using the start script (Recommended)
 
 ```bash
 # Windows
